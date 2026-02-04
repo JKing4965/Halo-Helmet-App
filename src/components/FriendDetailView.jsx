@@ -1,10 +1,13 @@
 import React, { useState } from 'react';
 import { ChevronLeft, Activity, MapPin, Clock, Phone, X } from 'lucide-react';
 import GPSMap from './GPSMap.jsx';
+import BrainViz from './BrainViz.jsx';
+import ToggleSlider from './shared/ToggleSlider.jsx';
 import { RESORTS } from '../utils/resortData';
 
 const FriendDetailView = ({ friend, onBack, formatForce }) => {
   const [showPatrolModal, setShowPatrolModal] = useState(false);
+  const [viewMode, setViewMode] = useState('Brain Map');
   const isLive = friend.status.includes('Live');
   
   const friendResort = RESORTS.find(r => r.id === friend.resortId);
@@ -17,9 +20,15 @@ const FriendDetailView = ({ friend, onBack, formatForce }) => {
     id: 'live-loc',
     lat: friend.location.lat,
     lng: friend.location.lng,
-    gForce: 0, // 0 to show green/neutral marker or we could customize GPSMap to handle 'neutral'
+    gForce: 0, 
     time: 'Now'
   }] : [];
+
+  // Calculate stats for heatmap if details exist
+  const cumulativeStats = friend.impactDetails?.reduce((acc, impact) => {
+    acc[impact.zone] = (acc[impact.zone] || 0) + impact.gForce;
+    return acc;
+  }, {}) || {};
 
   return (
     <div className="h-full flex flex-col bg-[#f8fafc] animate-in slide-in-from-right-8 duration-300 relative">
@@ -48,20 +57,48 @@ const FriendDetailView = ({ friend, onBack, formatForce }) => {
       </div>
 
       <div className="flex-1 overflow-y-auto scrollbar-hide">
-        {/* Live Map Section */}
-        {isLive && friend.location && (
-          <div className="h-64 w-full bg-slate-200 relative mb-6">
-             <div className="absolute top-4 left-4 z-10 bg-red-500 text-white text-[10px] font-bold px-2 py-1 rounded animate-pulse flex items-center gap-1">
-               <span className="w-2 h-2 bg-white rounded-full"></span> LIVE TRACKING
-             </div>
-             <GPSMap 
-               impacts={mapData} 
-               activeImpactId={'live-loc'} 
-               onImpactClick={() => {}} 
-               initialCenter={friend.location}
+        
+        {/* Visualization Toggle */}
+        <div className="px-6 mb-4">
+          <ToggleSlider 
+            leftLabel="Brain Map" 
+            rightLabel="GPS Map" 
+            value={viewMode} 
+            onToggle={setViewMode} 
+          />
+        </div>
+
+        {/* Live Map / Brain Section */}
+        <div className="h-64 w-full bg-slate-900 relative mb-6">
+           {viewMode === 'Brain Map' ? (
+             <BrainViz 
+               activeZone={null} 
+               cumulativeStats={cumulativeStats} 
+               autoRotate={true} 
+               isInteractive={false} 
              />
-          </div>
-        )}
+           ) : (
+             <>
+               {isLive && (
+                 <div className="absolute top-4 left-4 z-10 bg-red-500 text-white text-[10px] font-bold px-2 py-1 rounded animate-pulse flex items-center gap-1">
+                   <span className="w-2 h-2 bg-white rounded-full"></span> LIVE TRACKING
+                 </div>
+               )}
+               {isLive && friend.location ? (
+                 <GPSMap 
+                   impacts={mapData} 
+                   activeImpactId={'live-loc'} 
+                   onImpactClick={() => {}} 
+                   initialCenter={friend.location}
+                 />
+               ) : (
+                 <div className="w-full h-full flex items-center justify-center text-slate-500 text-sm">
+                   No GPS Data Available
+                 </div>
+               )}
+             </>
+           )}
+        </div>
 
         <div className="px-6 space-y-4 pb-8">
           {/* Stats Cards */}

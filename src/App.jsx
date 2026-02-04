@@ -77,6 +77,7 @@ export default function HaloHelmetApp() {
   const [selectedResort, setSelectedResort] = useState(null);
   const [resortSearch, setResortSearch] = useState('');
   const [showPatrolModal, setShowPatrolModal] = useState(false);
+  const [activeZoneFilter, setActiveZoneFilter] = useState(null); // Filter for active session
   
   // Simulated User Location (Start at Bryce Resort for prototype)
   const [userLocation, setUserLocation] = useState({ lat: 38.8166, lng: -78.7627 });
@@ -222,6 +223,19 @@ export default function HaloHelmetApp() {
 
   const renderNewActivity = () => {
     if (isSessionActive) {
+      const cumulativeStats = currentImpacts.reduce((acc, impact) => {
+        acc[impact.zone] = (acc[impact.zone] || 0) + impact.gForce;
+        return acc;
+      }, {});
+
+      const visibleImpacts = activeZoneFilter 
+        ? currentImpacts.filter(i => i.zone === activeZoneFilter) 
+        : currentImpacts;
+
+      const handleZoneClick = (zone) => {
+        setActiveZoneFilter(prev => prev === zone ? null : zone);
+      };
+
       return (
         <div className="h-full flex flex-col animate-in fade-in duration-300 relative">
           <div className="flex-1 overflow-y-auto p-6 pb-32 scrollbar-hide">
@@ -256,7 +270,23 @@ export default function HaloHelmetApp() {
             <div className="relative mb-6">
               <div className="rounded-2xl overflow-hidden shadow-xl border-4 border-slate-800 bg-slate-900 h-64 relative">
                 {activeSessionViewMode === 'Brain Map' ? (
-                  <BrainViz activeZone={currentImpacts.length > 0 ? currentImpacts[0].zone : null} autoRotate={true} />
+                  <>
+                    <div className="absolute inset-0" onClick={() => setActiveZoneFilter(null)} />
+                    {activeZoneFilter && (
+                      <div className="absolute top-4 left-4 z-10 bg-slate-800/80 backdrop-blur px-3 py-1.5 rounded-lg border border-slate-700 flex items-center gap-2 pointer-events-auto">
+                          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Filtered:</span>
+                          <span className="text-white font-bold capitalize text-xs">{activeZoneFilter}</span>
+                          <button onClick={(e) => { e.stopPropagation(); setActiveZoneFilter(null); }} className="text-slate-400 hover:text-white"><X size={12} /></button>
+                      </div>
+                    )}
+                    <BrainViz 
+                      activeZone={activeZoneFilter} 
+                      onZoneClick={handleZoneClick}
+                      cumulativeStats={cumulativeStats} 
+                      autoRotate={!activeZoneFilter} 
+                      isInteractive={true}
+                    />
+                  </>
                 ) : (
                   <GPSMap 
                     impacts={currentImpacts} 
@@ -275,10 +305,16 @@ export default function HaloHelmetApp() {
 
             {/* Live Impact Stream */}
             <div className="space-y-3">
-              <h3 className="text-sm font-bold text-slate-500 uppercase tracking-wider ml-1">Recent Impacts</h3>
-              {currentImpacts.length > 0 ? (
-                currentImpacts.map(impact => (
-                  <div key={impact.id} className="w-full flex items-center justify-between p-4 rounded-xl border border-slate-100 bg-white shadow-sm animate-in slide-in-from-top-2">
+              <h3 className="text-sm font-bold text-slate-500 uppercase tracking-wider ml-1">
+                {activeZoneFilter ? `${activeZoneFilter} Impacts` : 'Recent Impacts'}
+              </h3>
+              {visibleImpacts.length > 0 ? (
+                visibleImpacts.map(impact => (
+                  <div 
+                    key={impact.id} 
+                    onClick={() => setActiveZoneFilter(impact.zone)}
+                    className={`w-full flex items-center justify-between p-4 rounded-xl border transition-all cursor-pointer active:scale-[0.98] ${activeZoneFilter === impact.zone ? 'bg-slate-50 border-slate-300 ring-1 ring-slate-200' : 'bg-white border-slate-100 shadow-sm'}`}
+                  >
                      <div className="flex items-center gap-4">
                        <div className={`w-12 h-12 rounded-full flex items-center justify-center border ${getImpactColor(impact.gForce)}`}>
                           <span className="text-sm font-bold">{calculateForce(impact.gForce)}</span>
@@ -298,7 +334,9 @@ export default function HaloHelmetApp() {
                   </div>
                 ))
               ) : (
-                <div className="text-center py-8 text-slate-400 text-sm italic">Waiting for activity...</div>
+                <div className="text-center py-8 text-slate-400 text-sm italic">
+                  {activeZoneFilter ? `No impacts recorded in ${activeZoneFilter} lobe.` : 'Waiting for activity...'}
+                </div>
               )}
             </div>
           </div>

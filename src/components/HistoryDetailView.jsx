@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ChevronLeft, AlertTriangle, CheckCircle, Activity } from 'lucide-react';
+import { ChevronLeft, AlertTriangle, CheckCircle, Activity, X } from 'lucide-react';
 import BrainViz from './BrainViz.jsx';
 import GPSMap from './GPSMap.jsx';
 import ToggleSlider from './shared/ToggleSlider.jsx';
@@ -7,14 +7,45 @@ import { RESORTS } from '../utils/resortData';
 
 const HistoryDetailView = ({ session, onBack, formatForce }) => {
   const [selectedImpactId, setSelectedImpactId] = useState(null);
+  const [selectedZone, setSelectedZone] = useState(null); // High-level zone filter
   const [viewMode, setViewMode] = useState('Brain Map');
 
   // Find the resort name if available
   const sessionResort = RESORTS.find(r => r.id === session.resortId);
 
-  // Find the currently selected impact object to get its zone
-  const selectedImpact = session?.impactDetails?.find(i => i.id === selectedImpactId);
-  const activeZone = selectedImpact ? selectedImpact.zone : null;
+  // Filter impacts: If a zone is selected, only show impacts in that zone.
+  const visibleImpacts = selectedZone 
+    ? session.impactDetails?.filter(i => i.zone === selectedZone)
+    : session.impactDetails;
+
+  // Interaction Handlers
+  const handleZoneClick = (zone) => {
+    // If clicking the same zone, deselect. Otherwise, select new zone.
+    if (selectedZone === zone) {
+        setSelectedZone(null);
+        setSelectedImpactId(null);
+    } else {
+        setSelectedZone(zone);
+        setSelectedImpactId(null); // Clear specific impact selection when changing zone
+    }
+  };
+
+  const handleImpactClick = (impact) => {
+      // If clicking already selected impact, deselect everything.
+      if (selectedImpactId === impact.id) {
+          setSelectedImpactId(null);
+          // Optional: Keep zone selected or clear it? Clearing it feels more natural "toggle off".
+          // But user said "user can disengage... by clicking away". 
+          // Let's keep zone selected if we just untoggle the specific card, OR just clear ID.
+          // Better: If I click a card, I enter that zone context.
+          // If I click it again, maybe I just unselect the card but keep the zone filter?
+          // Let's toggle both off for simple "disengage".
+          setSelectedZone(null);
+      } else {
+          setSelectedImpactId(impact.id);
+          setSelectedZone(impact.zone);
+      }
+  };
 
   // Fallback formatter if not provided
   const displayForce = (val) => formatForce ? formatForce(val) : `${val}g`;
@@ -30,6 +61,12 @@ const HistoryDetailView = ({ session, onBack, formatForce }) => {
       if (gForce >= 30) return 'Med';
       return 'Low';
   };
+
+  // Calculate stats for heatmap (always based on FULL session, not filtered view)
+  const cumulativeStats = session.impactDetails?.reduce((acc, impact) => {
+    acc[impact.zone] = (acc[impact.zone] || 0) + impact.gForce;
+    return acc;
+  }, {}) || {};
 
   return (
     <div className="h-full flex flex-col bg-[#f8fafc] animate-in slide-in-from-right-8 duration-300">
@@ -63,17 +100,33 @@ const HistoryDetailView = ({ session, onBack, formatForce }) => {
       <div className="h-64 shrink-0 relative w-full bg-slate-900 shadow-inner overflow-hidden transition-all duration-300">
          {viewMode === 'Brain Map' ? (
            <>
-             <div className="absolute top-4 left-4 z-10 bg-slate-800/80 backdrop-blur px-3 py-1.5 rounded-lg border border-slate-700">
-                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-0.5">Selected Zone</span>
-                <span className="text-white font-bold capitalize">{activeZone || 'None'}</span>
-             </div>
-             <BrainViz activeZone={activeZone} autoRotate={!activeZone} isInteractive={false} />
+             {/* Interaction overlay to deselect if clicking "away" (bg) */}
+             <div className="absolute inset-0" onClick={() => { setSelectedZone(null); setSelectedImpactId(null); }} />
+             
+             {selectedZone && (
+                <div className="absolute top-4 left-4 z-10 bg-slate-800/80 backdrop-blur px-3 py-1.5 rounded-lg border border-slate-700 flex items-center gap-2 pointer-events-auto">
+                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Filtered:</span>
+                    <span className="text-white font-bold capitalize text-xs">{selectedZone}</span>
+                    <button onClick={(e) => { e.stopPropagation(); setSelectedZone(null); setSelectedImpactId(null); }} className="text-slate-400 hover:text-white"><X size={12} /></button>
+                </div>
+             )}
+
+             <BrainViz 
+               activeZone={selectedZone} 
+               onZoneClick={handleZoneClick}
+               cumulativeStats={cumulativeStats}
+               autoRotate={!selectedZone} 
+               isInteractive={true} 
+             />
            </>
          ) : (
            <GPSMap 
              impacts={session.impactDetails} 
              activeImpactId={selectedImpactId} 
-             onImpactClick={setSelectedImpactId} 
+             onImpactClick={(id) => {
+                 const i = session.impactDetails.find(x => x.id === id);
+                 if(i) handleImpactClick(i);
+             }} 
              initialCenter={sessionResort}
            />
          )}
@@ -81,18 +134,20 @@ const HistoryDetailView = ({ session, onBack, formatForce }) => {
 
       {/* Impact List */}
       <div className="flex-1 overflow-y-auto p-4 scrollbar-hide">
-        <h3 className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-3 ml-1">Impact Timeline</h3>
+        <h3 className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-3 ml-1">
+            {selectedZone ? `${selectedZone} Impacts` : 'All Impacts'}
+        </h3>
         
-        {session.impactDetails && session.impactDetails.length > 0 ? (
+        {visibleImpacts && visibleImpacts.length > 0 ? (
            <div className="space-y-3">
-             {session.impactDetails.map((impact) => {
+             {visibleImpacts.map((impact) => {
                const isSelected = selectedImpactId === impact.id;
                const colorClass = getImpactColor(impact.gForce);
                
                return (
                  <button
                    key={impact.id}
-                   onClick={() => setSelectedImpactId(isSelected ? null : impact.id)}
+                   onClick={() => handleImpactClick(impact)}
                    className={`w-full flex items-center justify-between p-4 rounded-xl border transition-all duration-200 ${
                      isSelected 
                        ? 'bg-white border-[#0f4c81] ring-1 ring-[#0f4c81] shadow-md' 
@@ -122,9 +177,7 @@ const HistoryDetailView = ({ session, onBack, formatForce }) => {
            </div>
         ) : (
            <div className="flex flex-col items-center justify-center py-12 text-slate-400 bg-slate-50 rounded-2xl border border-dashed border-slate-200">
-              <CheckCircle size={48} className="mb-2 text-emerald-400 opacity-50" />
-              <p className="font-medium">No impacts recorded.</p>
-              <p className="text-xs opacity-70">A safe and clean run!</p>
+              <p className="font-medium">No impacts in this zone.</p>
            </div>
         )}
       </div>

@@ -26,6 +26,10 @@ export const MOCK_FRIENDS = [
     avatar: "AS",
     lastActive: "Today, 2:30 PM",
     recentImpacts: { count: 2, maxForce: 15 },
+    impactDetails: [
+      { id: 101, zone: 'frontal', gForce: 15 },
+      { id: 102, zone: 'parietal', gForce: 10 }
+    ],
     location: null 
   },
   { 
@@ -37,6 +41,12 @@ export const MOCK_FRIENDS = [
     avatar: "JM",
     lastActive: "Now",
     recentImpacts: { count: 8, maxForce: 35 },
+    impactDetails: [
+      { id: 201, zone: 'frontal', gForce: 35 },
+      { id: 202, zone: 'temporal', gForce: 25 },
+      { id: 203, zone: 'frontal', gForce: 20 },
+      { id: 204, zone: 'occipital', gForce: 15 }
+    ],
     location: { lat: 38.8166, lng: -78.7627 } // Bryce Resort
   },
   { 
@@ -48,6 +58,7 @@ export const MOCK_FRIENDS = [
     avatar: "CR",
     lastActive: "Yesterday, 4:00 PM",
     recentImpacts: { count: 0, maxForce: 0 },
+    impactDetails: [],
     location: null
   },
   { 
@@ -59,6 +70,12 @@ export const MOCK_FRIENDS = [
     avatar: "TK",
     lastActive: "Now",
     recentImpacts: { count: 15, maxForce: 62 },
+    impactDetails: [
+      { id: 401, zone: 'frontal', gForce: 62 },
+      { id: 402, zone: 'frontal', gForce: 55 },
+      { id: 403, zone: 'temporal', gForce: 40 },
+      { id: 404, zone: 'parietal', gForce: 30 }
+    ],
     location: { lat: 50.1163, lng: -122.9574 } // Whistler Blackcomb
   },
   { 
@@ -70,6 +87,9 @@ export const MOCK_FRIENDS = [
     avatar: "RP",
     lastActive: "Oct 20, 11:00 AM",
     recentImpacts: { count: 1, maxForce: 10 },
+    impactDetails: [
+      { id: 501, zone: 'cerebellum', gForce: 10 }
+    ],
     location: null
   },
   { 
@@ -81,6 +101,10 @@ export const MOCK_FRIENDS = [
     avatar: "ML",
     lastActive: "Now",
     recentImpacts: { count: 3, maxForce: 18 },
+    impactDetails: [
+      { id: 601, zone: 'temporal', gForce: 18 },
+      { id: 602, zone: 'frontal', gForce: 12 }
+    ],
     location: { lat: 39.6403, lng: -106.3742 } // Vail
   }
 ];

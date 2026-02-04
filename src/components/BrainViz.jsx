@@ -1,7 +1,7 @@
 import React, { useRef, useMemo, useEffect } from 'react';
 import { X } from 'lucide-react';
 
-const BrainViz = ({ activeZone = null, onZoneClick = null, autoRotate = true, isInteractive = false }) => {
+const BrainViz = ({ activeZone = null, onZoneClick = null, autoRotate = true, isInteractive = false, cumulativeStats = null }) => {
   const canvasRef = useRef(null);
   const rotationRef = useRef({ x: 0.2, y: -1.5 });
   const zoomRef = useRef(1.0);
@@ -120,7 +120,7 @@ const BrainViz = ({ activeZone = null, onZoneClick = null, autoRotate = true, is
         let z2 = y1 * Math.sin(rotationRef.current.x) + z1 * Math.cos(rotationRef.current.x);
         let x2 = x1; 
 
-        // 2. Rotate Normal Vector (CRITICAL FIX: Use p.nx, p.ny, p.nz)
+        // 2. Rotate Normal Vector
         let nx1 = p.nx * Math.cos(rotationRef.current.y) - p.nz * Math.sin(rotationRef.current.y);
         let nz1 = p.nx * Math.sin(rotationRef.current.y) + p.nz * Math.cos(rotationRef.current.y);
         let ny1 = p.ny;
@@ -131,7 +131,6 @@ const BrainViz = ({ activeZone = null, onZoneClick = null, autoRotate = true, is
 
         const scale = (400 / (400 + z2)) * zoomRef.current; 
         
-        // 3. Calculate Lighting using the rotated NORMAL (nx2, ny2, nz2), not position
         let intensity = (nx2 * light.x + ny2 * light.y + nz2 * light.z);
         intensity = Math.max(0.2, (intensity + 1) / 2);
 
@@ -140,14 +139,26 @@ const BrainViz = ({ activeZone = null, onZoneClick = null, autoRotate = true, is
 
       projected.forEach(p => {
         ctx.beginPath();
-        let baseColor = { r: 203, g: 213, b: 225 }; 
+        let baseColor = { r: 203, g: 213, b: 225 }; // Default Slate-300
         
-        if (p.zone === 'frontal') baseColor = { r: 239, g: 68, b: 68 };
-        else if (p.zone === 'temporal') baseColor = { r: 245, g: 158, b: 11 };
-        else if (p.zone === 'parietal') baseColor = { r: 148, g: 163, b: 184 };
-        else if (p.zone === 'cerebellum') baseColor = { r: 100, g: 116, b: 139 };
-        
-        if (activeZone && p.zone !== activeZone) baseColor = { r: 50, g: 50, b: 60 };
+        // Heatmap Logic (Yellow -> Deep Red)
+        if (cumulativeStats) {
+            const val = cumulativeStats[p.zone] || 0;
+            if (val > 150) baseColor = { r: 127, g: 29, b: 29 }; // Deep Red (900)
+            else if (val > 100) baseColor = { r: 220, g: 38, b: 38 }; // Red (600)
+            else if (val > 50) baseColor = { r: 249, g: 115, b: 22 }; // Orange (500)
+            else if (val > 0) baseColor = { r: 250, g: 204, b: 21 }; // Yellow (400) - making it slightly darker than 'light yellow' so it shows on white
+            else baseColor = { r: 226, g: 232, b: 240 }; // Slate 200 (Inactive/Blank)
+        } 
+        // Default Logic (Interactive / Static)
+        else {
+            if (p.zone === 'frontal') baseColor = { r: 239, g: 68, b: 68 };
+            else if (p.zone === 'temporal') baseColor = { r: 245, g: 158, b: 11 };
+            else if (p.zone === 'parietal') baseColor = { r: 148, g: 163, b: 184 };
+            else if (p.zone === 'cerebellum') baseColor = { r: 100, g: 116, b: 139 };
+            
+            if (activeZone && p.zone !== activeZone) baseColor = { r: 50, g: 50, b: 60 };
+        }
         
         const r = Math.floor(baseColor.r * p.intensity);
         const g = Math.floor(baseColor.g * p.intensity);
@@ -162,7 +173,7 @@ const BrainViz = ({ activeZone = null, onZoneClick = null, autoRotate = true, is
     };
     render();
     return () => cancelAnimationFrame(animationFrameId);
-  }, [particles, activeZone, autoRotate]);
+  }, [particles, activeZone, autoRotate, cumulativeStats]);
 
   const handleStart = (x, y) => { isDragging.current = true; lastMouse.current = { x, y }; };
   const handleMove = (x, y) => {
