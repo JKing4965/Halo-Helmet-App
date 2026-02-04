@@ -311,14 +311,14 @@ export default function HaloHelmetApp() {
 
   return (
     <div className="h-[100dvh] w-full bg-[#ffffff] font-sans text-slate-900 flex flex-col mx-auto shadow-2xl relative overflow-hidden select-none">
-      <div className="flex-1 overflow-hidden relative">
+      <div className="flex-1 overflow-hidden relative pt-[env(safe-area-inset-top)]">
         {activeTab === 'dashboard' && renderDashboard()}
         {activeTab === 'activity' && renderNewActivity()}
         {activeTab === 'history' && renderHistory()}
         {activeTab === 'community' && renderCommunity()}
       </div>
       {!isSessionActive && (
-        <div className="w-full bg-white border-t border-slate-200 px-6 py-4 flex justify-between items-end shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] z-40 shrink-0">
+        <div className="w-full bg-white border-t border-slate-200 px-6 pt-4 pb-[calc(1rem+env(safe-area-inset-bottom))] flex justify-between items-end shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] z-40 shrink-0">
           <button onClick={() => setActiveTab('dashboard')} className={`flex flex-col items-center gap-1 transition-colors bg-transparent ${activeTab === 'dashboard' ? 'text-[#0f4c81]' : 'text-slate-400'}`}><Home size={24} strokeWidth={activeTab === 'dashboard' ? 2.5 : 2} /><span className="text-[10px] font-medium">Home</span></button>
           <div className="relative -top-6"><button onClick={() => { setActiveTab('activity'); setIsSessionActive(false); }} className={`w-14 h-14 rounded-full flex items-center justify-center shadow-lg transform transition-transform active:scale-95 ${activeTab === 'activity' ? 'bg-[#0f4c81] ring-4 ring-[#e0f2fe]' : 'bg-[#0f4c81] hover:bg-[#0a355c]'}`}><Plus size={28} color="white" strokeWidth={3} /></button></div>
           <button onClick={() => setActiveTab('history')} className={`flex flex-col items-center gap-1 transition-colors bg-transparent ${activeTab === 'history' ? 'text-[#0f4c81]' : 'text-slate-400'}`}><History size={24} strokeWidth={activeTab === 'history' ? 2.5 : 2} /><span className="text-[10px] font-medium">History</span></button>

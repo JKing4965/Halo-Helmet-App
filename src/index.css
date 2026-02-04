@@ -26,7 +26,9 @@ body {
   min-width: 320px;
   height: 100dvh;
   overflow: hidden;
-  background-color: #000;
+  background-color: #ffffff;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
   /* Removed display: flex and place-items: center to prevent floating/jitter on mobile */
 }
 
