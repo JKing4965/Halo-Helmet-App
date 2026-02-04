@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { 
   Activity, 
   History, 
@@ -17,10 +17,15 @@ import {
   LogOut, 
   Shield, 
   CreditCard, 
-  Bell
+  Bell,
+  Search,
+  MapPin,
+  Phone
 } from 'lucide-react';
 
 import { LOBE_STATS, MOCK_FRIENDS, MOCK_HISTORY } from './utils/constants';
+import { RESORTS } from './utils/resortData';
+import { findNearestResort, getDistanceFromLatLonInKm } from './utils/geoUtils';
 import BrainViz from './components/BrainViz.jsx';
 import GPSMap from './components/GPSMap.jsx';
 import StatCard from './components/shared/StatCard.jsx';
@@ -40,11 +45,11 @@ export default function HaloHelmetApp() {
   
   // App Settings State (The "Real" State)
   const [settingsPage, setSettingsPage] = useState('main'); 
-  const [unitSystem, setUnitSystem] = useState('Metric'); // 'Metric' or 'Imperial'
-  const [forceUnit, setForceUnit] = useState('G-Force'); // 'G-Force' or 'Newtons'
+  const [unitSystem, setUnitSystem] = useState('Metric'); 
+  const [forceUnit, setForceUnit] = useState('G-Force'); 
   const [profile, setProfile] = useState({
-    height: 180, // cm
-    weight: 75,  // kg
+    height: 180, 
+    weight: 75,  
     headCirc: 58,
     gender: 'Male' 
   });
@@ -54,7 +59,7 @@ export default function HaloHelmetApp() {
     dataCollection: true
   });
 
-  // Temporary Settings State (For Edit Mode)
+  // Temporary Settings State
   const [tempUnitSystem, setTempUnitSystem] = useState('Metric');
   const [tempForceUnit, setTempForceUnit] = useState('G-Force');
   const [tempProfile, setTempProfile] = useState({});
@@ -67,8 +72,49 @@ export default function HaloHelmetApp() {
   const [sessionPeakG, setSessionPeakG] = useState(0);
   const [activityType, setActivityType] = useState('Skiing');
   const [activeSessionViewMode, setActiveSessionViewMode] = useState('Brain Map');
+  
+  // Resort Selection & Safety State
+  const [selectedResort, setSelectedResort] = useState(null);
+  const [resortSearch, setResortSearch] = useState('');
+  const [showPatrolModal, setShowPatrolModal] = useState(false);
+  
+  // Simulated User Location (Start at Bryce Resort for prototype)
+  const [userLocation, setUserLocation] = useState({ lat: 38.8166, lng: -78.7627 });
 
-  // Initialize temp settings when modal opens
+  useEffect(() => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          setUserLocation({
+            lat: position.coords.latitude,
+            lng: position.coords.longitude
+          });
+        },
+        (error) => {
+          console.log("Geo error, using default", error);
+        }
+      );
+    }
+  }, []);
+
+  // Filter and Sort Resorts
+  const filteredResorts = useMemo(() => {
+    return RESORTS.filter(r => 
+      r.name.toLowerCase().includes(resortSearch.toLowerCase())
+    ).sort((a, b) => {
+      const distA = getDistanceFromLatLonInKm(userLocation.lat, userLocation.lng, a.lat, a.lng);
+      const distB = getDistanceFromLatLonInKm(userLocation.lat, userLocation.lng, b.lat, b.lng);
+      return distA - distB;
+    });
+  }, [resortSearch, userLocation]);
+
+  // Auto-select nearest on load if none selected
+  useEffect(() => {
+    if (!selectedResort && filteredResorts.length > 0) {
+      setSelectedResort(filteredResorts[0]);
+    }
+  }, [filteredResorts]);
+
   const handleOpenSettings = () => {
     setTempUnitSystem(unitSystem);
     setTempForceUnit(forceUnit);
@@ -90,14 +136,10 @@ export default function HaloHelmetApp() {
     setShowSettings(false);
   };
 
-  // Helper: Calculate Force Display String
   const calculateForce = (gForce) => {
     if (forceUnit === 'G-Force') {
       return `${gForce}g`;
     } else {
-      // Newtons = Mass (kg) * Acceleration (m/s^2)
-      // 1g approx 9.81 m/s^2
-      // Default to 75kg if weight is missing
       const mass = profile.weight || 75; 
       const newtons = Math.round(mass * gForce * 9.81);
       return `${newtons}N`;
@@ -112,9 +154,13 @@ export default function HaloHelmetApp() {
         if (Math.random() < 0.1) {
           const gForce = Math.floor(Math.random() * 60) + 10;
           const zone = ['frontal', 'temporal', 'occipital', 'parietal', 'cerebellum'][Math.floor(Math.random() * 5)];
-          // Simulate slight GPS movement around Bryce Resort (38.8166, -78.7627)
-          const lat = 38.8166 + (Math.random() - 0.5) * 0.005;
-          const lng = -78.7627 + (Math.random() - 0.5) * 0.005;
+          
+          // Use selected resort location as base, or default
+          const baseLat = selectedResort ? selectedResort.lat : 38.8166;
+          const baseLng = selectedResort ? selectedResort.lng : -78.7627;
+
+          const lat = baseLat + (Math.random() - 0.5) * 0.005;
+          const lng = baseLng + (Math.random() - 0.5) * 0.005;
           
           const newImpact = { 
             id: Date.now(), 
@@ -130,7 +176,7 @@ export default function HaloHelmetApp() {
       }, 1000);
     }
     return () => clearInterval(interval);
-  }, [isSessionActive]);
+  }, [isSessionActive, selectedResort]);
 
   const formatTime = (seconds) => {
     const m = Math.floor(seconds / 60);
@@ -180,17 +226,31 @@ export default function HaloHelmetApp() {
         <div className="h-full flex flex-col animate-in fade-in duration-300 relative">
           <div className="flex-1 overflow-y-auto p-6 pb-32 scrollbar-hide">
             <div className="flex justify-between items-center mb-6">
-              <div className="flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-red-500 animate-pulse"></div><span className="text-red-500 font-bold tracking-wider text-sm">LIVE RECORDING</span></div>
+              <div className="flex items-center gap-2">
+                <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse"></div>
+                <div className="flex flex-col">
+                  <span className="text-red-500 font-bold tracking-wider text-[10px] uppercase leading-none mb-0.5">LIVE RECORDING</span>
+                  <span className="text-slate-900 font-bold text-xs uppercase leading-none">{selectedResort ? selectedResort.name : 'Unknown Location'}</span>
+                </div>
+              </div>
               <div className="text-3xl font-mono font-bold text-slate-800">{formatTime(sessionTime)}</div>
             </div>
 
-            <div className="mb-4">
-              <ToggleSlider 
-                leftLabel="Brain Map" 
-                rightLabel="GPS Map" 
-                value={activeSessionViewMode} 
-                onToggle={setActiveSessionViewMode} 
-              />
+            <div className="mb-4 flex items-center justify-between">
+              <div className="flex-1 mr-4">
+                <ToggleSlider 
+                  leftLabel="Brain Map" 
+                  rightLabel="GPS Map" 
+                  value={activeSessionViewMode} 
+                  onToggle={setActiveSessionViewMode} 
+                />
+              </div>
+              <button 
+                onClick={() => setShowPatrolModal(true)}
+                className="bg-red-50 text-red-500 p-3 rounded-xl border border-red-100 shadow-sm hover:bg-red-500 hover:text-white transition-all active:scale-95"
+              >
+                <Phone size={20} fill="currentColor" />
+              </button>
             </div>
 
             <div className="relative mb-6">
@@ -198,7 +258,12 @@ export default function HaloHelmetApp() {
                 {activeSessionViewMode === 'Brain Map' ? (
                   <BrainViz activeZone={currentImpacts.length > 0 ? currentImpacts[0].zone : null} autoRotate={true} />
                 ) : (
-                  <GPSMap impacts={currentImpacts} activeImpactId={currentImpacts.length > 0 ? currentImpacts[0].id : null} onImpactClick={() => {}} />
+                  <GPSMap 
+                    impacts={currentImpacts} 
+                    activeImpactId={currentImpacts.length > 0 ? currentImpacts[0].id : null} 
+                    onImpactClick={() => {}} 
+                    initialCenter={selectedResort}
+                  />
                 )}
               </div>
             </div>
@@ -240,6 +305,35 @@ export default function HaloHelmetApp() {
           <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-white via-white to-transparent z-20">
              <button onClick={() => setIsSessionActive(false)} className="w-full bg-red-500 hover:bg-red-600 active:bg-red-700 text-white font-bold py-4 rounded-xl shadow-lg shadow-red-200 transition-all flex items-center justify-center gap-2"><Square size={18} fill="currentColor" />End Session</button>
           </div>
+
+          {/* Ski Patrol Modal (Self) */}
+          {showPatrolModal && selectedResort && (
+            <div className="absolute inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-6 animate-in fade-in duration-200">
+              <div className="bg-white w-full max-w-xs rounded-3xl p-6 shadow-2xl scale-100 animate-in zoom-in-95 duration-200">
+                <div className="text-center mb-6">
+                  <div className="w-16 h-16 bg-red-100 text-red-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <Phone size={32} fill="currentColor" />
+                  </div>
+                  <h3 className="text-xl font-bold text-slate-900 mb-1">Call Ski Patrol?</h3>
+                  <p className="text-sm text-slate-500">Contacting {selectedResort.name} Patrol.</p>
+                </div>
+                
+                <div className="bg-slate-50 p-4 rounded-xl text-center mb-6 border border-slate-100">
+                  <span className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Emergency Number</span>
+                  <span className="text-2xl font-mono font-bold text-slate-900">{selectedResort.patrolNumber}</span>
+                </div>
+
+                <div className="space-y-3">
+                  <a href={`tel:${selectedResort.patrolNumber}`} className="block w-full bg-red-500 text-white font-bold py-4 rounded-xl text-center shadow-lg hover:bg-red-600 transition-colors">
+                    Dial Now
+                  </a>
+                  <button onClick={() => setShowPatrolModal(false)} className="block w-full bg-white text-slate-500 font-bold py-4 rounded-xl border border-slate-200 hover:bg-slate-50 transition-colors">
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       );
     }
@@ -247,15 +341,64 @@ export default function HaloHelmetApp() {
       <div className="flex flex-col h-full animate-in fade-in slide-in-from-right-8 p-6 pb-8">
         <h1 className="text-2xl font-bold text-slate-900 mb-6 shrink-0">New Activity</h1>
         <div className="flex-1 overflow-y-auto scrollbar-hide -mr-4 pr-4">
-          <label className="block text-sm font-semibold text-slate-600 mb-2">Activity Type</label>
-          <div className="grid grid-cols-2 gap-3 mb-6">
-            {['Skiing', 'Snowboarding'].map(type => (
-              <button key={type} onClick={() => setActivityType(type)} className={`p-4 rounded-xl border text-left transition-all ${activityType === type ? 'border-[#0f4c81] bg-[#0f4c81] text-white shadow-md' : 'border-slate-200 bg-white text-slate-600 hover:border-[#6ec6ff]'}`}><div className="font-bold">{type}</div></button>
-            ))}
+          
+          <div className="mb-6">
+            <label className="block text-sm font-semibold text-slate-600 mb-2">Activity Type</label>
+            <div className="grid grid-cols-2 gap-3">
+              {['Skiing', 'Snowboarding'].map(type => (
+                <button key={type} onClick={() => setActivityType(type)} className={`p-4 rounded-xl border text-left transition-all ${activityType === type ? 'border-[#0f4c81] bg-[#0f4c81] text-white shadow-md' : 'border-slate-200 bg-white text-slate-600 hover:border-[#6ec6ff]'}`}><div className="font-bold">{type}</div></button>
+              ))}
+            </div>
           </div>
+
+          <div className="mb-6">
+            <label className="block text-sm font-semibold text-slate-600 mb-2">Select Resort</label>
+            <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
+              <div className="p-3 border-b border-slate-100 flex items-center gap-2">
+                <Search size={18} className="text-slate-400" />
+                <input 
+                  type="text" 
+                  placeholder="Search resorts..." 
+                  value={resortSearch}
+                  onChange={(e) => setResortSearch(e.target.value)}
+                  className="w-full bg-transparent outline-none text-sm font-medium text-slate-900"
+                />
+              </div>
+              <div className="max-h-48 overflow-y-auto scrollbar-hide p-1 space-y-1">
+                {filteredResorts.length > 0 ? filteredResorts.map(resort => (
+                  <button 
+                    key={resort.id}
+                    onClick={() => setSelectedResort(resort)}
+                    className={`w-full flex items-center justify-between p-3 rounded-lg text-left transition-colors ${selectedResort?.id === resort.id ? 'bg-[#0f4c81] text-white' : 'bg-white text-[#0f4c81] hover:bg-slate-50'}`}
+                  >
+                    <span className="font-bold text-sm truncate">{resort.name}</span>
+                    <div className="flex items-center gap-1 opacity-70">
+                      <MapPin size={12} />
+                      <span className="text-[10px]">{Math.round(getDistanceFromLatLonInKm(userLocation.lat, userLocation.lng, resort.lat, resort.lng))}km</span>
+                    </div>
+                  </button>
+                )) : (
+                  <div className="p-4 text-center text-xs text-slate-400">No resorts found</div>
+                )}
+              </div>
+            </div>
+          </div>
+
           <div className="bg-emerald-50 border border-emerald-100 p-4 rounded-xl flex items-center gap-3 mb-8"><div className="w-3 h-3 bg-emerald-500 rounded-full shadow-[0_0_8px_rgba(16,185,129,0.5)]"></div><div><div className="font-semibold text-emerald-800 text-sm">Connected</div><div className="text-emerald-600 text-xs">Battery: 84%</div></div></div>
         </div>
-        <button onClick={() => { setCurrentImpacts([]); setSessionTime(0); setSessionPeakG(0); setIsSessionActive(true); }} className="w-full bg-[#10b981] hover:bg-[#059669] text-white font-bold text-lg py-4 rounded-2xl shadow-lg shadow-emerald-100 flex items-center justify-center gap-2 transition-transform active:scale-95"><Play size={20} fill="currentColor" />START SESSION</button>
+        <button 
+          onClick={() => { 
+            setCurrentImpacts([]); 
+            setSessionTime(0); 
+            setSessionPeakG(0); 
+            setIsSessionActive(true); 
+          }} 
+          disabled={!selectedResort}
+          className={`w-full text-white font-bold text-lg py-4 rounded-2xl shadow-lg flex items-center justify-center gap-2 transition-transform active:scale-95 ${selectedResort ? 'bg-[#10b981] hover:bg-[#059669] shadow-emerald-100' : 'bg-slate-300 cursor-not-allowed'}`}
+        >
+          <Play size={20} fill="currentColor" />
+          START SESSION
+        </button>
       </div>
     );
   };

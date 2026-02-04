@@ -2,15 +2,27 @@ import React, { useState, useEffect, useRef } from 'react';
 import Map, { Marker, Popup } from 'react-map-gl/mapbox';
 import 'mapbox-gl/dist/mapbox-gl.css';
 
-const GPSMap = ({ impacts = [], activeImpactId, onImpactClick }) => {
+const GPSMap = ({ impacts = [], activeImpactId, onImpactClick, initialCenter }) => {
   const mapRef = useRef(null);
   
-  // Bryce Resort Center
+  // Default to Bryce Resort if no center provided
   const [viewState, setViewState] = useState({
-    longitude: -78.7627,
-    latitude: 38.8166,
+    longitude: initialCenter ? initialCenter.lng : -78.7627,
+    latitude: initialCenter ? initialCenter.lat : 38.8166,
     zoom: 14.5
   });
+
+  // Update view if initialCenter changes (e.g. switching friends)
+  useEffect(() => {
+    if (initialCenter) {
+      setViewState(prev => ({
+        ...prev,
+        longitude: initialCenter.lng,
+        latitude: initialCenter.lat,
+        zoom: 14.5
+      }));
+    }
+  }, [initialCenter]);
 
   // Effect to fly to the active impact when selected from the list
   useEffect(() => {

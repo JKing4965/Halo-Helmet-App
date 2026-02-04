@@ -21,6 +21,7 @@ export const MOCK_FRIENDS = [
     id: 1, 
     name: "Alex S.", 
     status: "Snowboarding - 2h ago", 
+    resortId: 'jackson',
     risk: "Low", 
     avatar: "AS",
     lastActive: "Today, 2:30 PM",
@@ -31,6 +32,7 @@ export const MOCK_FRIENDS = [
     id: 2, 
     name: "Jordan M.", 
     status: "Snowboarding - Live", 
+    resortId: 'bryce',
     risk: "Med", 
     avatar: "JM",
     lastActive: "Now",
@@ -41,6 +43,7 @@ export const MOCK_FRIENDS = [
     id: 3, 
     name: "Casey R.", 
     status: "Skiing - 1d ago", 
+    resortId: 'aspen',
     risk: "Low", 
     avatar: "CR",
     lastActive: "Yesterday, 4:00 PM",
@@ -51,16 +54,18 @@ export const MOCK_FRIENDS = [
     id: 4, 
     name: "Taylor K.", 
     status: "Skiing - Live", 
+    resortId: 'whistler',
     risk: "High", 
     avatar: "TK",
     lastActive: "Now",
     recentImpacts: { count: 15, maxForce: 62 },
-    location: { lat: 38.8180, lng: -78.7640 }
+    location: { lat: 50.1163, lng: -122.9574 } // Whistler Blackcomb
   },
   { 
     id: 5, 
     name: "Riley P.", 
     status: "Snowboarding - 3d ago", 
+    resortId: 'mammoth',
     risk: "Low", 
     avatar: "RP",
     lastActive: "Oct 20, 11:00 AM",
@@ -71,11 +76,12 @@ export const MOCK_FRIENDS = [
     id: 6, 
     name: "Morgan L.", 
     status: "Skiing - Live", 
+    resortId: 'vail',
     risk: "Low", 
     avatar: "ML",
     lastActive: "Now",
     recentImpacts: { count: 3, maxForce: 18 },
-    location: { lat: 38.8150, lng: -78.7610 }
+    location: { lat: 39.6403, lng: -106.3742 } // Vail
   }
 ];
 
@@ -84,6 +90,7 @@ export const MOCK_HISTORY = [
     id: 101, 
     date: "2023-10-24", 
     type: "Snowboarding", 
+    resortId: 'bryce',
     duration: "1h 15m", 
     maxForce: 45, 
     impacts: 12, 
@@ -107,6 +114,7 @@ export const MOCK_HISTORY = [
     id: 102, 
     date: "2023-10-22", 
     type: "Snowboarding", 
+    resortId: 'whistler',
     duration: "2h 30m", 
     maxForce: 82, 
     impacts: 3, 
@@ -121,6 +129,7 @@ export const MOCK_HISTORY = [
     id: 103, 
     date: "2023-10-20", 
     type: "Skiing", 
+    resortId: 'vail',
     duration: "4h 00m", 
     maxForce: 12, 
     impacts: 0, 

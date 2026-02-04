@@ -1,9 +1,13 @@
-import React from 'react';
-import { ChevronLeft, Activity, MapPin, Clock } from 'lucide-react';
+import React, { useState } from 'react';
+import { ChevronLeft, Activity, MapPin, Clock, Phone, X } from 'lucide-react';
 import GPSMap from './GPSMap.jsx';
+import { RESORTS } from '../utils/resortData';
 
 const FriendDetailView = ({ friend, onBack, formatForce }) => {
+  const [showPatrolModal, setShowPatrolModal] = useState(false);
   const isLive = friend.status.includes('Live');
+  
+  const friendResort = RESORTS.find(r => r.id === friend.resortId);
 
   // Fallback formatter if not provided
   const displayForce = (val) => formatForce ? formatForce(val) : `${val}g`;
@@ -18,7 +22,7 @@ const FriendDetailView = ({ friend, onBack, formatForce }) => {
   }] : [];
 
   return (
-    <div className="h-full flex flex-col bg-[#f8fafc] animate-in slide-in-from-right-8 duration-300">
+    <div className="h-full flex flex-col bg-[#f8fafc] animate-in slide-in-from-right-8 duration-300 relative">
       {/* Header */}
       <div className="flex items-center gap-3 p-6 pb-4 shrink-0">
         <button 
@@ -27,10 +31,20 @@ const FriendDetailView = ({ friend, onBack, formatForce }) => {
         >
           <ChevronLeft size={24} />
         </button>
-        <div>
+        <div className="flex-1">
            <h1 className="text-xl font-bold text-slate-900">{friend.name}</h1>
-           <p className="text-xs text-slate-500">{friend.status}</p>
+           <p className="text-xs text-slate-500">
+             {friend.status} {friendResort ? `at ${friendResort.name}` : ''}
+           </p>
         </div>
+        {isLive && friendResort && (
+          <button 
+            onClick={() => setShowPatrolModal(true)}
+            className="bg-red-50 text-red-500 p-2.5 rounded-full hover:bg-red-100 transition-colors animate-pulse"
+          >
+            <Phone size={20} fill="currentColor" />
+          </button>
+        )}
       </div>
 
       <div className="flex-1 overflow-y-auto scrollbar-hide">
@@ -40,7 +54,12 @@ const FriendDetailView = ({ friend, onBack, formatForce }) => {
              <div className="absolute top-4 left-4 z-10 bg-red-500 text-white text-[10px] font-bold px-2 py-1 rounded animate-pulse flex items-center gap-1">
                <span className="w-2 h-2 bg-white rounded-full"></span> LIVE TRACKING
              </div>
-             <GPSMap impacts={mapData} activeImpactId={'live-loc'} onImpactClick={() => {}} />
+             <GPSMap 
+               impacts={mapData} 
+               activeImpactId={'live-loc'} 
+               onImpactClick={() => {}} 
+               initialCenter={friend.location}
+             />
           </div>
         )}
 
@@ -97,6 +116,35 @@ const FriendDetailView = ({ friend, onBack, formatForce }) => {
           )}
         </div>
       </div>
+
+      {/* Ski Patrol Modal */}
+      {showPatrolModal && friendResort && (
+        <div className="absolute inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-6 animate-in fade-in duration-200">
+          <div className="bg-white w-full max-w-xs rounded-3xl p-6 shadow-2xl scale-100 animate-in zoom-in-95 duration-200">
+            <div className="text-center mb-6">
+              <div className="w-16 h-16 bg-red-100 text-red-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Phone size={32} fill="currentColor" />
+              </div>
+              <h3 className="text-xl font-bold text-slate-900 mb-1">Call Ski Patrol?</h3>
+              <p className="text-sm text-slate-500">Contacting {friendResort.name} Patrol for {friend.name}.</p>
+            </div>
+            
+            <div className="bg-slate-50 p-4 rounded-xl text-center mb-6 border border-slate-100">
+              <span className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Emergency Number</span>
+              <span className="text-2xl font-mono font-bold text-slate-900">{friendResort.patrolNumber}</span>
+            </div>
+
+            <div className="space-y-3">
+              <a href={`tel:${friendResort.patrolNumber}`} className="block w-full bg-red-500 text-white font-bold py-4 rounded-xl text-center shadow-lg hover:bg-red-600 transition-colors">
+                Dial Now
+              </a>
+              <button onClick={() => setShowPatrolModal(false)} className="block w-full bg-white text-slate-500 font-bold py-4 rounded-xl border border-slate-200 hover:bg-slate-50 transition-colors">
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

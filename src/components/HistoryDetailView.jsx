@@ -3,10 +3,14 @@ import { ChevronLeft, AlertTriangle, CheckCircle, Activity } from 'lucide-react'
 import BrainViz from './BrainViz.jsx';
 import GPSMap from './GPSMap.jsx';
 import ToggleSlider from './shared/ToggleSlider.jsx';
+import { RESORTS } from '../utils/resortData';
 
 const HistoryDetailView = ({ session, onBack, formatForce }) => {
   const [selectedImpactId, setSelectedImpactId] = useState(null);
   const [viewMode, setViewMode] = useState('Brain Map');
+
+  // Find the resort name if available
+  const sessionResort = RESORTS.find(r => r.id === session.resortId);
 
   // Find the currently selected impact object to get its zone
   const selectedImpact = session?.impactDetails?.find(i => i.id === selectedImpactId);
@@ -39,7 +43,10 @@ const HistoryDetailView = ({ session, onBack, formatForce }) => {
         </button>
         <div className="flex-1">
            <h1 className="text-xl font-bold text-slate-900">{session.type} Session</h1>
-           <p className="text-xs text-slate-500">{session.date} • {session.impacts} Impacts</p>
+           <p className="text-xs text-slate-500">
+             {session.date} • {session.impacts} Impacts
+             {sessionResort ? ` • ${sessionResort.name}` : ''}
+           </p>
         </div>
       </div>
 
@@ -67,6 +74,7 @@ const HistoryDetailView = ({ session, onBack, formatForce }) => {
              impacts={session.impactDetails} 
              activeImpactId={selectedImpactId} 
              onImpactClick={setSelectedImpactId} 
+             initialCenter={sessionResort}
            />
          )}
       </div>
