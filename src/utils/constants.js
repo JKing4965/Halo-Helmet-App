@@ -1,3 +1,11 @@
+
+// Helper to get a date string for X days ago
+const getRecentDate = (daysAgo) => {
+  const date = new Date();
+  date.setDate(date.getDate() - daysAgo);
+  return date.toISOString().split('T')[0];
+};
+
 export const THEME = {
   primary: '#0f4c81',
   accent: '#6ec6ff',
@@ -8,15 +16,10 @@ export const THEME = {
   neutral: '#cbd5e1',
 };
 
-export const LOBE_STATS = {
-  'Frontal': { impacts: 12, maxForce: 68, risk: 'High' },
-  'Temporal Left': { impacts: 2, maxForce: 28, risk: 'Low' },
-  'Temporal Right': { impacts: 2, maxForce: 32, risk: 'Med' },
-  'Parietal Left': { impacts: 1, maxForce: 12, risk: 'Low' },
-  'Parietal Right': { impacts: 0, maxForce: 0, risk: 'None' },
-  'Occipital': { impacts: 0, maxForce: 0, risk: 'None' },
-  'Cerebellum': { impacts: 0, maxForce: 0, risk: 'None' },
-};
+// These will now be calculated dynamically, but we keep the keys for reference
+export const LOBE_KEYS = [
+  'Frontal', 'Temporal Left', 'Temporal Right', 'Parietal Left', 'Parietal Right', 'Occipital', 'Cerebellum'
+];
 
 export const MOCK_FRIENDS = [
   { 
@@ -79,42 +82,14 @@ export const MOCK_FRIENDS = [
       { id: 404, zone: 'Parietal Right', gForce: 30 }
     ],
     location: { lat: 50.1163, lng: -122.9574 } // Whistler Blackcomb
-  },
-  { 
-    id: 5, 
-    name: "Riley P.", 
-    status: "Snowboarding - 3d ago", 
-    resortId: 'mammoth',
-    risk: "Low", 
-    avatar: "RP",
-    lastActive: "Oct 20, 11:00 AM",
-    recentImpacts: { count: 1, maxForce: 10 },
-    impactDetails: [
-      { id: 501, zone: 'Cerebellum', gForce: 10 }
-    ],
-    location: null
-  },
-  { 
-    id: 6, 
-    name: "Morgan L.", 
-    status: "Skiing - Live", 
-    resortId: 'vail',
-    risk: "Low", 
-    avatar: "ML",
-    lastActive: "Now",
-    recentImpacts: { count: 3, maxForce: 18 },
-    impactDetails: [
-      { id: 601, zone: 'Temporal Left', gForce: 18 },
-      { id: 602, zone: 'Frontal', gForce: 12 }
-    ],
-    location: { lat: 39.6403, lng: -106.3742 } // Vail
   }
 ];
 
+// Updated to be RECENT for the decay algorithm to work
 export const MOCK_HISTORY = [
   { 
     id: 101, 
-    date: "2023-10-24", 
+    date: getRecentDate(1), // Yesterday
     type: "Snowboarding", 
     resortId: 'bryce',
     duration: "1h 15m", 
@@ -138,7 +113,7 @@ export const MOCK_HISTORY = [
   },
   { 
     id: 102, 
-    date: "2023-10-22", 
+    date: getRecentDate(3), // 3 Days Ago
     type: "Snowboarding", 
     resortId: 'whistler',
     duration: "2h 30m", 
@@ -153,7 +128,7 @@ export const MOCK_HISTORY = [
   },
   { 
     id: 103, 
-    date: "2023-10-20", 
+    date: getRecentDate(14), // 2 Weeks Ago
     type: "Skiing", 
     resortId: 'vail',
     duration: "4h 00m", 

@@ -23,7 +23,8 @@ import {
   Phone
 } from 'lucide-react';
 
-import { LOBE_STATS, MOCK_FRIENDS, MOCK_HISTORY } from './utils/constants';
+import { MOCK_FRIENDS, MOCK_HISTORY } from './utils/constants';
+import { calculateBrainHealth } from './utils/brainHealthAlgorithm';
 import { RESORTS } from './utils/resortData';
 import { findNearestResort, getDistanceFromLatLonInKm } from './utils/geoUtils';
 import BrainViz from './components/BrainViz.jsx';
@@ -42,6 +43,14 @@ export default function HaloHelmetApp() {
   const [selectedLobe, setSelectedLobe] = useState(null);
   const [selectedHistorySession, setSelectedHistorySession] = useState(null);
   const [selectedFriend, setSelectedFriend] = useState(null);
+  
+  // Calculated Brain Health State
+  const [brainHealth, setBrainHealth] = useState({ totalScore: 100, regionalScores: {} });
+
+  useEffect(() => {
+    const health = calculateBrainHealth(MOCK_HISTORY);
+    setBrainHealth(health);
+  }, []);
   
   // App Settings State (The "Real" State)
   const [settingsPage, setSettingsPage] = useState('main'); 
@@ -211,7 +220,36 @@ export default function HaloHelmetApp() {
     return 'text-emerald-500 bg-emerald-50 border-emerald-100';
   };
 
-  const renderDashboard = () => (
+  const renderDashboard = () => {
+    // Map regional health to visualization intensity (0-255)
+    // High Load = High Intensity (Red)
+    const vizStats = {};
+    if (brainHealth.regionalScores) {
+      Object.keys(brainHealth.regionalScores).forEach(key => {
+        // rawLoad is approx 0 to 1. Scale to 0-255 for the viz heatmap
+        vizStats[key] = brainHealth.regionalScores[key].rawLoad * 200; 
+      });
+    }
+
+    // Convert Health Score (100 = Good) to Risk Score (0 = Good, 100 = Bad)
+    const riskScore = 100 - brainHealth.totalScore;
+    
+    // Determine status and color based on Risk
+    let riskColor = 'text-white';
+    let riskBarColor = 'bg-[#6ec6ff]';
+    let riskLabel = 'Safe Range';
+    
+    if (riskScore > 50) {
+        riskColor = 'text-red-300';
+        riskBarColor = 'bg-red-400';
+        riskLabel = 'High Risk';
+    } else if (riskScore > 20) {
+        riskColor = 'text-amber-300';
+        riskBarColor = 'bg-amber-400';
+        riskLabel = 'Caution';
+    }
+
+    return (
     <div className="h-full overflow-y-auto scrollbar-hide space-y-6 animate-in fade-in duration-500 p-6 pb-8">
       <div className="flex justify-between items-center">
         <div><h1 className="text-2xl font-bold text-slate-900">Hello, Skyler</h1><p className="text-slate-500 text-sm">Ready to hit the slopes?</p></div>
@@ -221,9 +259,12 @@ export default function HaloHelmetApp() {
         <div className="absolute top-0 right-0 opacity-10 transform translate-x-8 -translate-y-8"><Brain size={150} /></div>
         <div className="relative z-10">
           <div className="flex items-center gap-2 mb-4 opacity-90"><Activity size={18} /><span className="text-sm font-medium tracking-wide">CONCUSSION RISK MONITOR</span></div>
-          <div className="flex items-end gap-3 mb-2"><span className="text-5xl font-bold">10%</span><span className="text-lg opacity-80 mb-2">Safe Range</span></div>
-          <div className="w-full bg-white/20 h-2 rounded-full mt-4"><div className="bg-[#6ec6ff] h-2 rounded-full" style={{ width: '10%' }}></div></div>
-          <p className="text-xs mt-2 opacity-70">Based on cumulative G-forces over the last 48 hours.</p>
+          <div className="flex items-end gap-3 mb-2">
+            <span className={`text-5xl font-bold ${riskColor}`}>{riskScore}%</span>
+            <span className="text-lg opacity-80 mb-2">{riskLabel}</span>
+          </div>
+          <div className="w-full bg-white/20 h-2 rounded-full mt-4"><div className={`h-2 rounded-full ${riskBarColor}`} style={{ width: `${riskScore}%` }}></div></div>
+          <p className="text-xs mt-2 opacity-70">Based on cumulative, time-decayed impact load.</p>
         </div>
       </div>
       <div className="grid grid-cols-2 gap-4"><StatCard label="Avg Impact" value={calculateForce(12)} subtext="Last 7 days" icon={Activity} /><StatCard label="Active Hours" value="4.2h" subtext="This week" icon={Clock} /></div>
@@ -234,6 +275,7 @@ export default function HaloHelmetApp() {
       ))}</div></div>
     </div>
   );
+  };
 
   const renderNewActivity = () => {
     if (isSessionActive) {
@@ -491,12 +533,20 @@ export default function HaloHelmetApp() {
       return <HistoryDetailView session={selectedHistorySession} onBack={() => setSelectedHistorySession(null)} formatForce={calculateForce} />;
     }
 
+    // Map regional health to visualization intensity for History view
+    const vizStats = {};
+    if (brainHealth.regionalScores) {
+      Object.keys(brainHealth.regionalScores).forEach(key => {
+        vizStats[key] = brainHealth.regionalScores[key].rawLoad * 200; 
+      });
+    }
+
     return (
     <div className="h-full overflow-y-auto scrollbar-hide space-y-4 animate-in fade-in p-6 pb-8">
       <h1 className="text-2xl font-bold text-slate-900 mb-4">Activity History</h1>
       <div className="bg-slate-900 rounded-2xl p-1 shadow-lg mb-6 cursor-pointer group hover:ring-2 ring-[#6ec6ff] transition-all" onClick={() => setShowBrainDetail(true)}>
           <div className="p-4"><div className="flex justify-between items-center mb-4"><h3 className="text-white font-bold flex items-center gap-2"><Brain size={18} className="text-[#6ec6ff]" />Cumulative Impact Map</h3><div className="flex items-center gap-1 text-[10px] text-[#6ec6ff] bg-[#6ec6ff]/10 px-2 py-1 rounded-full"><Info size={12} /><span>Tap to Interact</span></div></div>
-          <div className="rounded-lg overflow-hidden border border-slate-700/50 relative h-64"><div className="absolute inset-0 bg-transparent z-10"></div><BrainViz activeZone={null} autoRotate={true} /></div></div>
+          <div className="rounded-lg overflow-hidden border border-slate-700/50 relative h-64"><div className="absolute inset-0 bg-transparent z-10"></div><BrainViz activeZone={null} autoRotate={true} cumulativeStats={vizStats} /></div></div>
       </div>
       <div className="space-y-3">{MOCK_HISTORY.map(item => (<div key={item.id} onClick={() => setSelectedHistorySession(item)} className="bg-white p-4 rounded-xl shadow-sm border border-slate-100 flex flex-col gap-3 group hover:border-[#6ec6ff] transition-colors cursor-pointer"><div className="flex justify-between items-start"><div className="flex items-center gap-3"><div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-600"><Activity size={20} /></div><div><h3 className="font-bold text-slate-800">{item.type}</h3><p className="text-xs text-slate-400">{item.date} • {item.duration}</p></div></div><div className={`text-xs font-bold px-2 py-1 rounded border ${item.risk === 'High' ? 'bg-red-50 text-red-600 border-red-100' : 'bg-slate-50 text-slate-600 border-slate-100'}`}>{item.risk} Risk</div></div><div className="grid grid-cols-3 gap-2 pt-2 border-t border-slate-50"><div className="text-center"><div className="text-xs text-slate-400">Peak Force</div><div className="font-mono font-bold text-slate-700">{calculateForce(item.maxForce)}</div></div><div className="text-center border-l border-slate-100"><div className="text-xs text-slate-400">Impacts</div><div className="font-mono font-bold text-slate-700">{item.impacts}</div></div><div className="text-center border-l border-slate-100 flex items-center justify-center text-slate-400 hover:text-[#0f4c81]"><ChevronRight size={16} /></div></div></div>))}</div>
     </div>
@@ -504,15 +554,24 @@ export default function HaloHelmetApp() {
   };
 
   if (showBrainDetail) {
-    const stats = selectedLobe ? LOBE_STATS[selectedLobe] : null;
+    const stats = selectedLobe ? brainHealth.regionalScores[selectedLobe] : null;
+    
+    // Map regional health to visualization intensity for Interactive view
+    const vizStats = {};
+    if (brainHealth.regionalScores) {
+      Object.keys(brainHealth.regionalScores).forEach(key => {
+        vizStats[key] = brainHealth.regionalScores[key].rawLoad * 200; 
+      });
+    }
+
     return (
       <div className="h-[100dvh] w-full bg-slate-900 flex flex-col max-w-[430px] mx-auto shadow-2xl relative overflow-hidden select-none text-white animate-in fade-in zoom-in duration-300">
         <div className="p-6 flex items-center justify-between z-20"><button onClick={() => { if (selectedLobe) { setSelectedLobe(null); } else { setShowBrainDetail(false); }}} className="p-2 bg-slate-800 rounded-full text-slate-300 hover:text-white"><ChevronLeft size={24} /></button><h2 className="font-bold text-lg">Interactive Model</h2><div className="w-10"></div></div>
-        <div className="flex-1 relative"><BrainViz activeZone={selectedLobe} onZoneClick={setSelectedLobe} autoRotate={!selectedLobe} isInteractive={true} /></div>
+        <div className="flex-1 relative"><BrainViz activeZone={selectedLobe} onZoneClick={setSelectedLobe} autoRotate={!selectedLobe} isInteractive={true} cumulativeStats={vizStats} /></div>
         <div className="bg-slate-800 p-6 pb-12 rounded-t-3xl shadow-[0_-4px_20px_rgba(0,0,0,0.5)] z-20 transition-all duration-300 min-h-[30%]">
           {selectedLobe ? (
             <div className="animate-in slide-in-from-bottom-4">
-              <div className="flex justify-between items-end mb-4"><h2 className="text-3xl font-bold capitalize text-[#6ec6ff]">{selectedLobe} Lobe</h2><span className={`text-sm font-bold px-3 py-1 rounded-full border ${stats.risk === 'High' ? 'bg-red-500/20 text-red-400 border-red-500/50' : stats.risk === 'Med' ? 'bg-amber-500/20 text-amber-400 border-amber-500/50' : 'bg-emerald-500/20 text-emerald-400 border-emerald-500/50'}`}>{stats.risk} Risk</span></div>
+              <div className="flex justify-between items-end mb-4"><h2 className="text-3xl font-bold capitalize text-[#6ec6ff]">{selectedLobe} Lobe</h2><span className={`text-sm font-bold px-3 py-1 rounded-full border ${stats.risk === 'High' ? 'bg-red-500/20 text-red-400 border-red-500/50' : stats.risk === 'Med' ? 'bg-amber-500/20 text-amber-400 border-amber-500/50' : 'bg-emerald-500/20 text-emerald-400 border-emerald-500/50'}`}>{stats.risk} Risk ({stats.score})</span></div>
               <div className="grid grid-cols-2 gap-4"><div className="bg-slate-700/50 p-4 rounded-xl border border-slate-600"><div className="text-slate-400 text-xs uppercase mb-1">Total Impacts</div><div className="text-2xl font-bold">{stats.impacts}</div></div><div className="bg-slate-700/50 p-4 rounded-xl border border-slate-600"><div className="text-slate-400 text-xs uppercase mb-1">Max Force</div><div className="text-2xl font-bold">{calculateForce(stats.maxForce)}</div></div></div>
               <p className="mt-4 text-slate-400 text-sm leading-relaxed">{selectedLobe === 'Frontal' && "Controls cognitive skills like problem solving and memory. High impact detected here."}{selectedLobe?.includes('Temporal') && "Processes auditory information. Moderate impacts recorded."}{selectedLobe === 'Occipital' && "Visual processing center. Currently safe from major impacts."}{selectedLobe?.includes('Parietal') && "Processes sensory information. Minor impacts detected."}{selectedLobe === 'Cerebellum' && "Controls balance and coordination. No impacts detected."}</p>
             </div>
