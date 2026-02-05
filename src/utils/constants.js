@@ -10,7 +10,8 @@ export const THEME = {
 
 export const LOBE_STATS = {
   'Frontal': { impacts: 12, maxForce: 68, risk: 'High' },
-  'Temporal': { impacts: 4, maxForce: 32, risk: 'Med' },
+  'Temporal Left': { impacts: 2, maxForce: 28, risk: 'Low' },
+  'Temporal Right': { impacts: 2, maxForce: 32, risk: 'Med' },
   'Parietal Left': { impacts: 1, maxForce: 12, risk: 'Low' },
   'Parietal Right': { impacts: 0, maxForce: 0, risk: 'None' },
   'Occipital': { impacts: 0, maxForce: 0, risk: 'None' },
@@ -44,7 +45,7 @@ export const MOCK_FRIENDS = [
     recentImpacts: { count: 8, maxForce: 35 },
     impactDetails: [
       { id: 201, zone: 'Frontal', gForce: 35 },
-      { id: 202, zone: 'Temporal', gForce: 25 },
+      { id: 202, zone: 'Temporal Left', gForce: 25 },
       { id: 203, zone: 'Frontal', gForce: 20 },
       { id: 204, zone: 'Occipital', gForce: 15 }
     ],
@@ -74,7 +75,7 @@ export const MOCK_FRIENDS = [
     impactDetails: [
       { id: 401, zone: 'Frontal', gForce: 62 },
       { id: 402, zone: 'Frontal', gForce: 55 },
-      { id: 403, zone: 'Temporal', gForce: 40 },
+      { id: 403, zone: 'Temporal Right', gForce: 40 },
       { id: 404, zone: 'Parietal Right', gForce: 30 }
     ],
     location: { lat: 50.1163, lng: -122.9574 } // Whistler Blackcomb
@@ -103,7 +104,7 @@ export const MOCK_FRIENDS = [
     lastActive: "Now",
     recentImpacts: { count: 3, maxForce: 18 },
     impactDetails: [
-      { id: 601, zone: 'Temporal', gForce: 18 },
+      { id: 601, zone: 'Temporal Left', gForce: 18 },
       { id: 602, zone: 'Frontal', gForce: 12 }
     ],
     location: { lat: 39.6403, lng: -106.3742 } // Vail
@@ -125,12 +126,12 @@ export const MOCK_HISTORY = [
       { id: 2, time: "10:18 AM", zone: "Parietal Left", gForce: 22, lat: 38.8162, lng: -78.7625 },
       { id: 3, time: "10:25 AM", zone: "Occipital", gForce: 10, lat: 38.8165, lng: -78.7620 },
       { id: 4, time: "10:32 AM", zone: "Frontal", gForce: 45, lat: 38.8170, lng: -78.7618 },
-      { id: 5, time: "10:35 AM", zone: "Temporal", gForce: 18, lat: 38.8172, lng: -78.7622 },
+      { id: 5, time: "10:35 AM", zone: "Temporal Left", gForce: 18, lat: 38.8172, lng: -78.7622 },
       { id: 6, time: "10:40 AM", zone: "Cerebellum", gForce: 12, lat: 38.8175, lng: -78.7628 },
       { id: 7, time: "10:45 AM", zone: "Parietal Right", gForce: 28, lat: 38.8178, lng: -78.7632 },
       { id: 8, time: "10:50 AM", zone: "Frontal", gForce: 30, lat: 38.8180, lng: -78.7635 },
       { id: 9, time: "11:05 AM", zone: "Occipital", gForce: 14, lat: 38.8185, lng: -78.7640 },
-      { id: 10, time: "11:12 AM", zone: "Temporal", gForce: 20, lat: 38.8188, lng: -78.7642 },
+      { id: 10, time: "11:12 AM", zone: "Temporal Right", gForce: 20, lat: 38.8188, lng: -78.7642 },
       { id: 11, time: "11:20 AM", zone: "Cerebellum", gForce: 11, lat: 38.8190, lng: -78.7645 },
       { id: 12, time: "11:28 AM", zone: "Frontal", gForce: 35, lat: 38.8192, lng: -78.7648 }
     ]
@@ -146,7 +147,7 @@ export const MOCK_HISTORY = [
     risk: "High",
     impactDetails: [
       { id: 13, time: "14:20 PM", zone: "Frontal", gForce: 82, lat: 38.8155, lng: -78.7620 },
-      { id: 14, time: "14:45 PM", zone: "Temporal", gForce: 65, lat: 38.8168, lng: -78.7635 },
+      { id: 14, time: "14:45 PM", zone: "Temporal Right", gForce: 65, lat: 38.8168, lng: -78.7635 },
       { id: 15, time: "15:10 PM", zone: "Parietal Left", gForce: 40, lat: 38.8182, lng: -78.7615 }
     ]
   },

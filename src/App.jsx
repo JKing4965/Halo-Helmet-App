@@ -166,13 +166,12 @@ export default function HaloHelmetApp() {
     if (isSessionActive) {
       interval = setInterval(() => {
         setSessionTime(t => t + 1);
-        if (Math.random() < 0.1) {
-          const gForce = Math.floor(Math.random() * 60) + 10;
-          const zones = ['Frontal', 'Temporal', 'Occipital', 'Parietal Left', 'Parietal Right', 'Cerebellum'];
-          const zone = zones[Math.floor(Math.random() * zones.length)];
-          
-          // Use selected resort location as base, or default
-          const baseLat = selectedResort ? selectedResort.lat : 38.8166;
+                  if (Math.random() < 0.1) {
+                  const gForce = Math.floor(Math.random() * 60) + 10;
+                  const zones = ['Frontal', 'Temporal Left', 'Temporal Right', 'Occipital', 'Parietal Left', 'Parietal Right', 'Cerebellum'];
+                  const zone = zones[Math.floor(Math.random() * zones.length)];
+                  
+                  // Use selected resort location as base, or default          const baseLat = selectedResort ? selectedResort.lat : 38.8166;
           const baseLng = selectedResort ? selectedResort.lng : -78.7627;
 
           const lat = baseLat + (Math.random() - 0.5) * 0.005;
@@ -515,7 +514,7 @@ export default function HaloHelmetApp() {
             <div className="animate-in slide-in-from-bottom-4">
               <div className="flex justify-between items-end mb-4"><h2 className="text-3xl font-bold capitalize text-[#6ec6ff]">{selectedLobe} Lobe</h2><span className={`text-sm font-bold px-3 py-1 rounded-full border ${stats.risk === 'High' ? 'bg-red-500/20 text-red-400 border-red-500/50' : stats.risk === 'Med' ? 'bg-amber-500/20 text-amber-400 border-amber-500/50' : 'bg-emerald-500/20 text-emerald-400 border-emerald-500/50'}`}>{stats.risk} Risk</span></div>
               <div className="grid grid-cols-2 gap-4"><div className="bg-slate-700/50 p-4 rounded-xl border border-slate-600"><div className="text-slate-400 text-xs uppercase mb-1">Total Impacts</div><div className="text-2xl font-bold">{stats.impacts}</div></div><div className="bg-slate-700/50 p-4 rounded-xl border border-slate-600"><div className="text-slate-400 text-xs uppercase mb-1">Max Force</div><div className="text-2xl font-bold">{calculateForce(stats.maxForce)}</div></div></div>
-              <p className="mt-4 text-slate-400 text-sm leading-relaxed">{selectedLobe === 'frontal' && "Controls cognitive skills like problem solving and memory. High impact detected here."}{selectedLobe === 'temporal' && "Processes auditory information. Moderate impacts recorded."}{selectedLobe === 'occipital' && "Visual processing center. Currently safe from major impacts."}{selectedLobe === 'parietal' && "Processes sensory information. Minor impacts detected."}{selectedLobe === 'cerebellum' && "Controls balance and coordination. No impacts detected."}</p>
+              <p className="mt-4 text-slate-400 text-sm leading-relaxed">{selectedLobe === 'Frontal' && "Controls cognitive skills like problem solving and memory. High impact detected here."}{selectedLobe?.includes('Temporal') && "Processes auditory information. Moderate impacts recorded."}{selectedLobe === 'Occipital' && "Visual processing center. Currently safe from major impacts."}{selectedLobe?.includes('Parietal') && "Processes sensory information. Minor impacts detected."}{selectedLobe === 'Cerebellum' && "Controls balance and coordination. No impacts detected."}</p>
             </div>
           ) : (<div className="flex flex-col items-center justify-center h-full py-8 text-slate-500"><Brain size={48} className="mb-3 opacity-20" /><p>Tap on the 3D brain model to view regional data.</p></div>)}
         </div>

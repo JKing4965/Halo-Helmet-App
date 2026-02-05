@@ -14,7 +14,8 @@ const BrainViz = ({ activeZone = null, onZoneClick = null, autoRotate = true, is
     'Parietal Left': { x: -25, y: -25, z: 0 },
     'Parietal Right': { x: 25, y: -25, z: 0 },
     'Occipital': { x: 0, y: -10, z: -40 },
-    'Temporal': { x: 40, y: 10, z: 10 },
+    'Temporal Left': { x: -35, y: 10, z: 10 },
+    'Temporal Right': { x: 35, y: 10, z: 10 },
     'Cerebellum': { x: 0, y: 25, z: -30 }
   });
 
@@ -47,8 +48,8 @@ const BrainViz = ({ activeZone = null, onZoneClick = null, autoRotate = true, is
     addSurfaceCluster(400, -25, -25, -5, 0.6, 0.65, 0.8, 'Parietal Left');
     addSurfaceCluster(400, 25, -25, -5, 0.6, 0.65, 0.8, 'Parietal Right');
     addSurfaceCluster(500, 0, -10, -35, 0.8, 0.8, 0.6, 'Occipital');
-    addSurfaceCluster(350, 35, 15, 5, 0.4, 0.5, 0.8, 'Temporal');
-    addSurfaceCluster(350, -35, 15, 5, 0.4, 0.5, 0.8, 'Temporal');
+    addSurfaceCluster(350, 35, 15, 5, 0.4, 0.5, 0.8, 'Temporal Right');
+    addSurfaceCluster(350, -35, 15, 5, 0.4, 0.5, 0.8, 'Temporal Left');
     addSurfaceCluster(400, 0, 30, -25, 0.6, 0.4, 0.5, 'Cerebellum');
     return pts;
   }, []);
@@ -164,7 +165,7 @@ const BrainViz = ({ activeZone = null, onZoneClick = null, autoRotate = true, is
             } else {
                 // Fallback for non-heatmap modes
                 if (p.zone === 'Frontal') baseColor = { r: 239, g: 68, b: 68 };
-                else if (p.zone === 'Temporal') baseColor = { r: 245, g: 158, b: 11 };
+                else if (p.zone.includes('Temporal')) baseColor = { r: 245, g: 158, b: 11 };
                 else if (p.zone.includes('Parietal')) baseColor = { r: 148, g: 163, b: 184 };
                 else if (p.zone === 'Cerebellum') baseColor = { r: 100, g: 116, b: 139 };
             }
