@@ -44,7 +44,7 @@ const GPSMap = ({ impacts = [], activeImpactId, onImpactClick, initialCenter }) 
         ref={mapRef}
         {...viewState}
         onMove={evt => setViewState(evt.viewState)}
-        mapStyle="mapbox://styles/mapbox/satellite-v9"
+        mapStyle="mapbox://styles/mapbox/outdoors-v12"
         mapboxAccessToken="pk.eyJ1IjoidGhhdGpwYXQiLCJhIjoiY21rcWFtczhmMHRvNjNqcHhwNDZhdXUwdiJ9.HB0PW82bqWneYoZWdLiZkw"
         attributionControl={false} // Clean look for prototype
       >

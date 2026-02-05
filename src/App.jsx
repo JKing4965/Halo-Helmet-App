@@ -180,13 +180,21 @@ export default function HaloHelmetApp() {
                   const zones = ['Frontal', 'Temporal Left', 'Temporal Right', 'Occipital', 'Parietal Left', 'Parietal Right', 'Cerebellum'];
                   const zone = zones[Math.floor(Math.random() * zones.length)];
                   
-                  // Use selected resort location as base, or default          const baseLat = selectedResort ? selectedResort.lat : 38.8166;
-          const baseLng = selectedResort ? selectedResort.lng : -78.7627;
-
-          const lat = baseLat + (Math.random() - 0.5) * 0.005;
-          const lng = baseLng + (Math.random() - 0.5) * 0.005;
-          
-          const newImpact = { 
+                                      // Use selected resort location as base, or default
+                  
+                                      const baseLat = selectedResort ? selectedResort.lat : 38.8166;
+                  
+                                      const baseLng = selectedResort ? selectedResort.lng : -78.7627;
+                  
+                            
+                  
+                                      const lat = baseLat + (Math.random() - 0.5) * 0.005;
+                  
+                                      const lng = baseLng + (Math.random() - 0.5) * 0.005;
+                  
+                                      
+                  
+                                      const newImpact = { 
             id: Date.now(), 
             gForce, 
             zone, 
