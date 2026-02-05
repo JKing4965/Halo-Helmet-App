@@ -75,6 +75,7 @@ export default function HaloHelmetApp() {
   
   // Resort Selection & Safety State
   const [selectedResort, setSelectedResort] = useState(null);
+  const [isResortSelectorOpen, setIsResortSelectorOpen] = useState(false);
   const [resortSearch, setResortSearch] = useState('');
   const [showPatrolModal, setShowPatrolModal] = useState(false);
   const [activeZoneFilter, setActiveZoneFilter] = useState(null); // Filter for active session
@@ -145,6 +146,13 @@ export default function HaloHelmetApp() {
       const newtons = Math.round(mass * gForce * 9.81);
       return `${newtons}N`;
     }
+  };
+
+  const formatDistance = (km) => {
+    if (unitSystem === 'Imperial') {
+      return `${Math.round(km * 0.621371)} mi`;
+    }
+    return `${Math.round(km)} km`;
   };
 
   useEffect(() => {
@@ -389,37 +397,62 @@ export default function HaloHelmetApp() {
             </div>
           </div>
 
-          <div className="mb-6">
+          <div className="mb-6 relative">
             <label className="block text-sm font-semibold text-slate-600 mb-2">Select Resort</label>
-            <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
-              <div className="p-3 border-b border-slate-100 flex items-center gap-2">
-                <Search size={18} className="text-slate-400" />
-                <input 
-                  type="text" 
-                  placeholder="Search resorts..." 
-                  value={resortSearch}
-                  onChange={(e) => setResortSearch(e.target.value)}
-                  className="w-full bg-transparent outline-none text-sm font-medium text-slate-900"
-                />
+            
+            {/* Click-outside backdrop when open */}
+            {isResortSelectorOpen && <div className="fixed inset-0 z-10" onClick={() => setIsResortSelectorOpen(false)} />}
+
+            {(!selectedResort || isResortSelectorOpen) ? (
+              <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-lg relative z-20 transition-all duration-200">
+                <div className="p-3 border-b border-slate-100 flex items-center gap-2">
+                  <Search size={18} className="text-slate-400" />
+                  <input 
+                    type="text" 
+                    placeholder="Search resorts..." 
+                    value={resortSearch}
+                    onChange={(e) => setResortSearch(e.target.value)}
+                    className="w-full bg-transparent outline-none text-sm font-medium text-slate-900"
+                    autoFocus={isResortSelectorOpen}
+                  />
+                </div>
+                <div className="max-h-48 overflow-y-auto scrollbar-hide p-1 space-y-1">
+                  {filteredResorts.length > 0 ? filteredResorts.map(resort => (
+                    <button 
+                      key={resort.id}
+                      onClick={() => { setSelectedResort(resort); setIsResortSelectorOpen(false); }}
+                      className={`w-full flex items-center justify-between p-3 rounded-lg text-left transition-colors ${selectedResort?.id === resort.id ? 'bg-[#0f4c81] text-white' : 'bg-white text-[#0f4c81] hover:bg-slate-50'}`}
+                    >
+                      <span className="font-bold text-sm truncate">{resort.name}</span>
+                      <div className="flex items-center gap-1 opacity-70">
+                        <MapPin size={12} />
+                        <span className="text-[10px]">{formatDistance(getDistanceFromLatLonInKm(userLocation.lat, userLocation.lng, resort.lat, resort.lng))}</span>
+                      </div>
+                    </button>
+                  )) : (
+                    <div className="p-4 text-center text-xs text-slate-400">No resorts found</div>
+                  )}
+                </div>
               </div>
-              <div className="max-h-48 overflow-y-auto scrollbar-hide p-1 space-y-1">
-                {filteredResorts.length > 0 ? filteredResorts.map(resort => (
-                  <button 
-                    key={resort.id}
-                    onClick={() => setSelectedResort(resort)}
-                    className={`w-full flex items-center justify-between p-3 rounded-lg text-left transition-colors ${selectedResort?.id === resort.id ? 'bg-[#0f4c81] text-white' : 'bg-white text-[#0f4c81] hover:bg-slate-50'}`}
-                  >
-                    <span className="font-bold text-sm truncate">{resort.name}</span>
-                    <div className="flex items-center gap-1 opacity-70">
-                      <MapPin size={12} />
-                      <span className="text-[10px]">{Math.round(getDistanceFromLatLonInKm(userLocation.lat, userLocation.lng, resort.lat, resort.lng))}km</span>
-                    </div>
-                  </button>
-                )) : (
-                  <div className="p-4 text-center text-xs text-slate-400">No resorts found</div>
-                )}
+            ) : (
+              <div 
+                onClick={() => setIsResortSelectorOpen(true)}
+                className="bg-white border border-slate-200 rounded-xl p-4 shadow-sm flex items-center justify-between cursor-pointer hover:border-[#0f4c81] transition-all group"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-[#e0f2fe] flex items-center justify-center text-[#0f4c81]">
+                    <MapPin size={20} />
+                  </div>
+                  <div>
+                    <div className="font-bold text-slate-900">{selectedResort.name}</div>
+                    <div className="text-xs text-slate-500">{formatDistance(getDistanceFromLatLonInKm(userLocation.lat, userLocation.lng, selectedResort.lat, selectedResort.lng))} away</div>
+                  </div>
+                </div>
+                <div className="text-xs font-bold text-[#0f4c81] bg-[#e0f2fe] px-3 py-1 rounded-full group-hover:bg-[#0f4c81] group-hover:text-white transition-colors">
+                  Change
+                </div>
               </div>
-            </div>
+            )}
           </div>
 
           <div className="bg-emerald-50 border border-emerald-100 p-4 rounded-xl flex items-center gap-3 mb-8"><div className="w-3 h-3 bg-emerald-500 rounded-full shadow-[0_0_8px_rgba(16,185,129,0.5)]"></div><div><div className="font-semibold text-emerald-800 text-sm">Connected</div><div className="text-emerald-600 text-xs">Battery: 84%</div></div></div>
