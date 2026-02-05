@@ -9,11 +9,12 @@ export const THEME = {
 };
 
 export const LOBE_STATS = {
-  frontal: { impacts: 12, maxForce: 68, risk: 'High' },
-  temporal: { impacts: 4, maxForce: 32, risk: 'Med' },
-  parietal: { impacts: 1, maxForce: 12, risk: 'Low' },
-  occipital: { impacts: 0, maxForce: 0, risk: 'None' },
-  cerebellum: { impacts: 0, maxForce: 0, risk: 'None' },
+  'Frontal': { impacts: 12, maxForce: 68, risk: 'High' },
+  'Temporal': { impacts: 4, maxForce: 32, risk: 'Med' },
+  'Parietal Left': { impacts: 1, maxForce: 12, risk: 'Low' },
+  'Parietal Right': { impacts: 0, maxForce: 0, risk: 'None' },
+  'Occipital': { impacts: 0, maxForce: 0, risk: 'None' },
+  'Cerebellum': { impacts: 0, maxForce: 0, risk: 'None' },
 };
 
 export const MOCK_FRIENDS = [
@@ -27,8 +28,8 @@ export const MOCK_FRIENDS = [
     lastActive: "Today, 2:30 PM",
     recentImpacts: { count: 2, maxForce: 15 },
     impactDetails: [
-      { id: 101, zone: 'frontal', gForce: 15 },
-      { id: 102, zone: 'parietal', gForce: 10 }
+      { id: 101, zone: 'Frontal', gForce: 15 },
+      { id: 102, zone: 'Parietal Left', gForce: 10 }
     ],
     location: null 
   },
@@ -42,10 +43,10 @@ export const MOCK_FRIENDS = [
     lastActive: "Now",
     recentImpacts: { count: 8, maxForce: 35 },
     impactDetails: [
-      { id: 201, zone: 'frontal', gForce: 35 },
-      { id: 202, zone: 'temporal', gForce: 25 },
-      { id: 203, zone: 'frontal', gForce: 20 },
-      { id: 204, zone: 'occipital', gForce: 15 }
+      { id: 201, zone: 'Frontal', gForce: 35 },
+      { id: 202, zone: 'Temporal', gForce: 25 },
+      { id: 203, zone: 'Frontal', gForce: 20 },
+      { id: 204, zone: 'Occipital', gForce: 15 }
     ],
     location: { lat: 38.8166, lng: -78.7627 } // Bryce Resort
   },
@@ -71,10 +72,10 @@ export const MOCK_FRIENDS = [
     lastActive: "Now",
     recentImpacts: { count: 15, maxForce: 62 },
     impactDetails: [
-      { id: 401, zone: 'frontal', gForce: 62 },
-      { id: 402, zone: 'frontal', gForce: 55 },
-      { id: 403, zone: 'temporal', gForce: 40 },
-      { id: 404, zone: 'parietal', gForce: 30 }
+      { id: 401, zone: 'Frontal', gForce: 62 },
+      { id: 402, zone: 'Frontal', gForce: 55 },
+      { id: 403, zone: 'Temporal', gForce: 40 },
+      { id: 404, zone: 'Parietal Right', gForce: 30 }
     ],
     location: { lat: 50.1163, lng: -122.9574 } // Whistler Blackcomb
   },
@@ -88,7 +89,7 @@ export const MOCK_FRIENDS = [
     lastActive: "Oct 20, 11:00 AM",
     recentImpacts: { count: 1, maxForce: 10 },
     impactDetails: [
-      { id: 501, zone: 'cerebellum', gForce: 10 }
+      { id: 501, zone: 'Cerebellum', gForce: 10 }
     ],
     location: null
   },
@@ -102,8 +103,8 @@ export const MOCK_FRIENDS = [
     lastActive: "Now",
     recentImpacts: { count: 3, maxForce: 18 },
     impactDetails: [
-      { id: 601, zone: 'temporal', gForce: 18 },
-      { id: 602, zone: 'frontal', gForce: 12 }
+      { id: 601, zone: 'Temporal', gForce: 18 },
+      { id: 602, zone: 'Frontal', gForce: 12 }
     ],
     location: { lat: 39.6403, lng: -106.3742 } // Vail
   }
@@ -120,18 +121,18 @@ export const MOCK_HISTORY = [
     impacts: 12, 
     risk: "Low",
     impactDetails: [
-      { id: 1, time: "10:15 AM", zone: "frontal", gForce: 15, lat: 38.8160, lng: -78.7630 },
-      { id: 2, time: "10:18 AM", zone: "parietal", gForce: 22, lat: 38.8162, lng: -78.7625 },
-      { id: 3, time: "10:25 AM", zone: "occipital", gForce: 10, lat: 38.8165, lng: -78.7620 },
-      { id: 4, time: "10:32 AM", zone: "frontal", gForce: 45, lat: 38.8170, lng: -78.7618 },
-      { id: 5, time: "10:35 AM", zone: "temporal", gForce: 18, lat: 38.8172, lng: -78.7622 },
-      { id: 6, time: "10:40 AM", zone: "cerebellum", gForce: 12, lat: 38.8175, lng: -78.7628 },
-      { id: 7, time: "10:45 AM", zone: "parietal", gForce: 28, lat: 38.8178, lng: -78.7632 },
-      { id: 8, time: "10:50 AM", zone: "frontal", gForce: 30, lat: 38.8180, lng: -78.7635 },
-      { id: 9, time: "11:05 AM", zone: "occipital", gForce: 14, lat: 38.8185, lng: -78.7640 },
-      { id: 10, time: "11:12 AM", zone: "temporal", gForce: 20, lat: 38.8188, lng: -78.7642 },
-      { id: 11, time: "11:20 AM", zone: "cerebellum", gForce: 11, lat: 38.8190, lng: -78.7645 },
-      { id: 12, time: "11:28 AM", zone: "frontal", gForce: 35, lat: 38.8192, lng: -78.7648 }
+      { id: 1, time: "10:15 AM", zone: "Frontal", gForce: 15, lat: 38.8160, lng: -78.7630 },
+      { id: 2, time: "10:18 AM", zone: "Parietal Left", gForce: 22, lat: 38.8162, lng: -78.7625 },
+      { id: 3, time: "10:25 AM", zone: "Occipital", gForce: 10, lat: 38.8165, lng: -78.7620 },
+      { id: 4, time: "10:32 AM", zone: "Frontal", gForce: 45, lat: 38.8170, lng: -78.7618 },
+      { id: 5, time: "10:35 AM", zone: "Temporal", gForce: 18, lat: 38.8172, lng: -78.7622 },
+      { id: 6, time: "10:40 AM", zone: "Cerebellum", gForce: 12, lat: 38.8175, lng: -78.7628 },
+      { id: 7, time: "10:45 AM", zone: "Parietal Right", gForce: 28, lat: 38.8178, lng: -78.7632 },
+      { id: 8, time: "10:50 AM", zone: "Frontal", gForce: 30, lat: 38.8180, lng: -78.7635 },
+      { id: 9, time: "11:05 AM", zone: "Occipital", gForce: 14, lat: 38.8185, lng: -78.7640 },
+      { id: 10, time: "11:12 AM", zone: "Temporal", gForce: 20, lat: 38.8188, lng: -78.7642 },
+      { id: 11, time: "11:20 AM", zone: "Cerebellum", gForce: 11, lat: 38.8190, lng: -78.7645 },
+      { id: 12, time: "11:28 AM", zone: "Frontal", gForce: 35, lat: 38.8192, lng: -78.7648 }
     ]
   },
   { 
@@ -144,9 +145,9 @@ export const MOCK_HISTORY = [
     impacts: 3, 
     risk: "High",
     impactDetails: [
-      { id: 13, time: "14:20 PM", zone: "frontal", gForce: 82, lat: 38.8155, lng: -78.7620 },
-      { id: 14, time: "14:45 PM", zone: "temporal", gForce: 65, lat: 38.8168, lng: -78.7635 },
-      { id: 15, time: "15:10 PM", zone: "parietal", gForce: 40, lat: 38.8182, lng: -78.7615 }
+      { id: 13, time: "14:20 PM", zone: "Frontal", gForce: 82, lat: 38.8155, lng: -78.7620 },
+      { id: 14, time: "14:45 PM", zone: "Temporal", gForce: 65, lat: 38.8168, lng: -78.7635 },
+      { id: 15, time: "15:10 PM", zone: "Parietal Left", gForce: 40, lat: 38.8182, lng: -78.7615 }
     ]
   },
   { 

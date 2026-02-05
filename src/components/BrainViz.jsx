@@ -10,11 +10,12 @@ const BrainViz = ({ activeZone = null, onZoneClick = null, autoRotate = true, is
   const containerRef = useRef(null);
 
   const lobeCenters = useRef({
-    frontal: { x: 0, y: -10, z: 40 },
-    parietal: { x: 0, y: -25, z: 0 },
-    occipital: { x: 0, y: -10, z: -40 },
-    temporal: { x: 40, y: 10, z: 10 },
-    cerebellum: { x: 0, y: 25, z: -30 }
+    'Frontal': { x: 0, y: -10, z: 40 },
+    'Parietal Left': { x: -25, y: -25, z: 0 },
+    'Parietal Right': { x: 25, y: -25, z: 0 },
+    'Occipital': { x: 0, y: -10, z: -40 },
+    'Temporal': { x: 40, y: 10, z: 10 },
+    'Cerebellum': { x: 0, y: 25, z: -30 }
   });
 
   const particles = useMemo(() => {
@@ -42,12 +43,13 @@ const BrainViz = ({ activeZone = null, onZoneClick = null, autoRotate = true, is
             pts.push({ x, y, z, nx: nx/len, ny: ny/len, nz: nz/len, zone });
         }
     };
-    addSurfaceCluster(700, 0, -10, 25, 0.9, 0.8, 0.9, 'frontal');
-    addSurfaceCluster(700, 0, -25, -5, 1.0, 0.65, 0.8, 'parietal');
-    addSurfaceCluster(500, 0, -10, -35, 0.8, 0.8, 0.6, 'occipital');
-    addSurfaceCluster(350, 35, 15, 5, 0.4, 0.5, 0.8, 'temporal');
-    addSurfaceCluster(350, -35, 15, 5, 0.4, 0.5, 0.8, 'temporal');
-    addSurfaceCluster(400, 0, 30, -25, 0.6, 0.4, 0.5, 'cerebellum');
+    addSurfaceCluster(700, 0, -10, 25, 0.9, 0.8, 0.9, 'Frontal');
+    addSurfaceCluster(400, -25, -25, -5, 0.6, 0.65, 0.8, 'Parietal Left');
+    addSurfaceCluster(400, 25, -25, -5, 0.6, 0.65, 0.8, 'Parietal Right');
+    addSurfaceCluster(500, 0, -10, -35, 0.8, 0.8, 0.6, 'Occipital');
+    addSurfaceCluster(350, 35, 15, 5, 0.4, 0.5, 0.8, 'Temporal');
+    addSurfaceCluster(350, -35, 15, 5, 0.4, 0.5, 0.8, 'Temporal');
+    addSurfaceCluster(400, 0, 30, -25, 0.6, 0.4, 0.5, 'Cerebellum');
     return pts;
   }, []);
 
@@ -140,31 +142,40 @@ const BrainViz = ({ activeZone = null, onZoneClick = null, autoRotate = true, is
       projected.forEach(p => {
         ctx.beginPath();
         let baseColor = { r: 203, g: 213, b: 225 }; // Default Slate-300
-        
-        // Heatmap Logic (Yellow -> Deep Red)
-        if (cumulativeStats) {
-            const val = cumulativeStats[p.zone] || 0;
-            if (val > 150) baseColor = { r: 127, g: 29, b: 29 }; // Deep Red (900)
-            else if (val > 100) baseColor = { r: 220, g: 38, b: 38 }; // Red (600)
-            else if (val > 50) baseColor = { r: 249, g: 115, b: 22 }; // Orange (500)
-            else if (val > 0) baseColor = { r: 250, g: 204, b: 21 }; // Yellow (400) - making it slightly darker than 'light yellow' so it shows on white
-            else baseColor = { r: 226, g: 232, b: 240 }; // Slate 200 (Inactive/Blank)
-        } 
-        // Default Logic (Interactive / Static)
-        else {
-            if (p.zone === 'frontal') baseColor = { r: 239, g: 68, b: 68 };
-            else if (p.zone === 'temporal') baseColor = { r: 245, g: 158, b: 11 };
-            else if (p.zone === 'parietal') baseColor = { r: 148, g: 163, b: 184 };
-            else if (p.zone === 'cerebellum') baseColor = { r: 100, g: 116, b: 139 };
-            
-            if (activeZone && p.zone !== activeZone) baseColor = { r: 50, g: 50, b: 60 };
+        let alpha = 1.0;
+
+        // If a specific zone is active, fade out everything else
+        if (activeZone && p.zone !== activeZone) {
+            baseColor = { r: 200, g: 200, b: 200 }; // Greyed out
+            alpha = 0.1; // Highly transparent
+        } else {
+            // Normal Coloring Logic (Heatmap or Identity)
+            if (cumulativeStats) {
+                const val = cumulativeStats[p.zone] || 0;
+                // Diverse Color Gradient (Yellow -> Deep Red)
+                if (val > 180) baseColor = { r: 69, g: 10, b: 10 };   // Red-950 (Black-Red)
+                else if (val > 140) baseColor = { r: 153, g: 27, b: 27 }; // Red-800
+                else if (val > 100) baseColor = { r: 220, g: 38, b: 38 }; // Red-600
+                else if (val > 70) baseColor = { r: 249, g: 115, b: 22 }; // Orange-500
+                else if (val > 40) baseColor = { r: 251, g: 146, b: 60 }; // Orange-400
+                else if (val > 20) baseColor = { r: 253, g: 224, b: 71 }; // Yellow-300
+                else if (val > 0) baseColor = { r: 254, g: 240, b: 138 }; // Yellow-200 (Faint Yellow)
+                else baseColor = { r: 226, g: 232, b: 240 }; // Slate 200 (Inactive)
+            } else {
+                // Fallback for non-heatmap modes
+                if (p.zone === 'Frontal') baseColor = { r: 239, g: 68, b: 68 };
+                else if (p.zone === 'Temporal') baseColor = { r: 245, g: 158, b: 11 };
+                else if (p.zone.includes('Parietal')) baseColor = { r: 148, g: 163, b: 184 };
+                else if (p.zone === 'Cerebellum') baseColor = { r: 100, g: 116, b: 139 };
+            }
         }
         
         const r = Math.floor(baseColor.r * p.intensity);
         const g = Math.floor(baseColor.g * p.intensity);
         const b = Math.floor(baseColor.b * p.intensity);
         
-        const colorString = `rgb(${r},${g},${b})`;
+        // Apply alpha to the final color string
+        const colorString = `rgba(${r},${g},${b},${alpha})`;
         ctx.fillStyle = colorString;
         ctx.arc(p.x, p.y, 4.5 * p.scale, 0, Math.PI * 2);
         ctx.fill();

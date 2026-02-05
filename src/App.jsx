@@ -155,6 +155,12 @@ export default function HaloHelmetApp() {
     return `${Math.round(km)} km`;
   };
 
+  const formatZoneName = (zone) => {
+    if (!zone) return '';
+    // Replace underscores with spaces and capitalize each word
+    return zone.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+  };
+
   useEffect(() => {
     let interval;
     if (isSessionActive) {
@@ -162,7 +168,8 @@ export default function HaloHelmetApp() {
         setSessionTime(t => t + 1);
         if (Math.random() < 0.1) {
           const gForce = Math.floor(Math.random() * 60) + 10;
-          const zone = ['frontal', 'temporal', 'occipital', 'parietal', 'cerebellum'][Math.floor(Math.random() * 5)];
+          const zones = ['Frontal', 'Temporal', 'Occipital', 'Parietal Left', 'Parietal Right', 'Cerebellum'];
+          const zone = zones[Math.floor(Math.random() * zones.length)];
           
           // Use selected resort location as base, or default
           const baseLat = selectedResort ? selectedResort.lat : 38.8166;
@@ -283,7 +290,7 @@ export default function HaloHelmetApp() {
                     {activeZoneFilter && (
                       <div className="absolute top-4 left-4 z-10 bg-slate-800/80 backdrop-blur px-3 py-1.5 rounded-lg border border-slate-700 flex items-center gap-2 pointer-events-auto">
                           <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Filtered:</span>
-                          <span className="text-white font-bold capitalize text-xs">{activeZoneFilter}</span>
+                          <span className="text-white font-bold capitalize text-xs">{formatZoneName(activeZoneFilter)}</span>
                           <button onClick={(e) => { e.stopPropagation(); setActiveZoneFilter(null); }} className="text-slate-400 hover:text-white"><X size={12} /></button>
                       </div>
                     )}
@@ -314,7 +321,7 @@ export default function HaloHelmetApp() {
             {/* Live Impact Stream */}
             <div className="space-y-3">
               <h3 className="text-sm font-bold text-slate-500 uppercase tracking-wider ml-1">
-                {activeZoneFilter ? `${activeZoneFilter} Impacts` : 'Recent Impacts'}
+                {activeZoneFilter ? `${formatZoneName(activeZoneFilter)} Impacts` : 'Recent Impacts'}
               </h3>
               {visibleImpacts.length > 0 ? (
                 visibleImpacts.map(impact => (
@@ -328,7 +335,7 @@ export default function HaloHelmetApp() {
                           <span className="text-sm font-bold">{calculateForce(impact.gForce)}</span>
                        </div>
                        <div className="text-left">
-                         <div className="font-bold text-slate-800 capitalize">{impact.zone} Lobe</div>
+                         <div className="font-bold text-slate-800 capitalize">{formatZoneName(impact.zone)}</div>
                          <div className="text-xs text-slate-400 font-medium">{impact.time}</div>
                        </div>
                      </div>
@@ -343,7 +350,7 @@ export default function HaloHelmetApp() {
                 ))
               ) : (
                 <div className="text-center py-8 text-slate-400 text-sm italic">
-                  {activeZoneFilter ? `No impacts recorded in ${activeZoneFilter} lobe.` : 'Waiting for activity...'}
+                  {activeZoneFilter ? `No impacts recorded in ${formatZoneName(activeZoneFilter)}.` : 'Waiting for activity...'}
                 </div>
               )}
             </div>
